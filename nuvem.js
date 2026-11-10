@@ -186,6 +186,41 @@
     el.querySelector("#mcd").onclick = async () => { ready = true; S._t = Date.now(); saveLocal(); await cpush(); fechar(); draw(1) };
   }
 
+  /* ---------- fotos fora do Claude (site e iPhone) ----------
+     O app original só salvava fotos no Claude ou no app nativo. Aqui elas são
+     reduzidas e guardadas junto com os dados da conta. */
+  async function reduzir(f, max, q) {
+    try { return await shrink(f, max, q) } catch (e) {}
+    const url = URL.createObjectURL(f);
+    try {
+      const img = await new Promise((ok, erro) => { const i = new Image(); i.onload = () => ok(i); i.onerror = erro; i.src = url });
+      const sc = Math.min(1, max / Math.max(img.naturalWidth, img.naturalHeight));
+      const cv = document.createElement("canvas");
+      cv.width = Math.round(img.naturalWidth * sc); cv.height = Math.round(img.naturalHeight * sc);
+      cv.getContext("2d").drawImage(img, 0, 0, cv.width, cv.height);
+      return cv.toDataURL("image/jpeg", q);
+    } finally { URL.revokeObjectURL(url) }
+  }
+  if (!NATIVE) {
+    window.NATIVE_PHOTO = async f => {
+      try {
+        const pos = document.getElementById("fpo");
+        S.fotos = S.fotos || [];
+        S.fotos.push({ d: td(), id: await reduzir(f, 800, .72), p: pos ? pos.value : "" });
+        sv(); draw(1); toast("📷 Foto salva");
+      } catch (e) { toast("Não consegui salvar a foto.") }
+    };
+    upPh = async function (id, f) {
+      try {
+        S.tr.ph = S.tr.ph || {};
+        S.tr.ph[id] = await reduzir(f, 520, .72);
+        sv(); draw(1);
+        if (typeof SH !== "undefined" && SH && SH.k == "ex") renderSheet();
+        toast("📷 Foto salva");
+      } catch (e) { toast("Não consegui salvar a foto.") }
+    };
+  }
+
   /* ---------- conta na tela "Nuvem e backup" ---------- */
   const bk0 = bkV;
   bkV = function () {
