@@ -19,32 +19,57 @@
     if (window.NATIVE_SAVE) window.NATIVE_SAVE();
   };
 
-  /* ---------- envio ---------- */
+  /* ---------- envio ----------
+     Regra: só envia se a nuvem ainda estiver na versão que este aparelho conhece.
+     Se outro aparelho salvou algo depois, este aparelho baixa primeiro (nunca sobrescreve). */
+  const SYNC = id => "mc_st_" + id;
+  const syncT = () => +(localStorage.getItem(SYNC(user.id)) || 0);
+  const setSync = t => localStorage.setItem(SYNC(user.id), String(t));
   async function cpush() {
     if (!user || !ready) return;
     if (cbusy) { cdirty = true; return }
     cbusy = true;
     try {
-      const { error } = await sb.from(T).upsert({ user_id: user.id, data: S, t: S._t || Date.now(), updated_at: new Date().toISOString() });
-      setSy(error ? "erro na nuvem: " + error.message : "salvo na nuvem ✅");
-      if (!error) localStorage.setItem(FLAG(user.id), "1");
+      const r = await sb.from(T).select("t").eq("user_id", user.id).limit(1);
+      if (r.error) throw r.error;
+      const nuvemT = r.data && r.data[0] ? +r.data[0].t : 0;
+      if (nuvemT > syncT()) { cbusy = false; await cpull(false); return }   // outro aparelho salvou depois: baixa antes
+      const t = Math.max(Date.now(), nuvemT + 1);
+      S._t = t;
+      const { error } = await sb.from(T).upsert({ user_id: user.id, data: S, t, updated_at: new Date().toISOString() });
+      if (error) setSy("erro na nuvem: " + error.message);
+      else { setSync(t); localStorage.setItem(FLAG(user.id), "1"); try { localStorage.setItem(KEY, JSON.stringify(S)) } catch (e) {} setSy("salvo na nuvem ✅") }
     } catch (e) { setSy("sem internet: salvo no aparelho") }
     cbusy = false;
     if (cdirty) { cdirty = false; cpush() }
   }
   push = async function () {
     if (window.NATIVE_SAVE) window.NATIVE_SAVE();
+    if (user && ready) localStorage.setItem("mc_dirty_" + user.id, "1");
     clearTimeout(ctimer);
     ctimer = setTimeout(cpush, 1200);
   };
 
   /* ---------- recebimento ---------- */
-  function usar(remoto) {
-    S = remoto; norm(); saveLocal();
+  function guardarCopia() {
+    try { if (S && S.log && Object.keys(S.log).length) localStorage.setItem("mc_copia_anterior", JSON.stringify({ quando: Date.now(), S })) } catch (e) {}
+  }
+  function usar(remoto, t) {
+    guardarCopia();
+    // mantém os dados do relógio de hoje que só este aparelho tem
+    const d = hoje(), loc = (S.log || {})[d] || {};
+    S = remoto; norm();
+    const L = S.log[d] = S.log[d] || {};
+    let juntou = false;
+    ["passos", "kat", "sono", "fc"].forEach(k => { if (loc[k] != null && L[k] !== loc[k] && (L[k] == null || loc[k] > L[k])) { L[k] = loc[k]; juntou = true } });
+    if (t) setSync(t);
+    saveLocal(); localStorage.removeItem("mc_dirty_" + user.id);
+    if (juntou) { localStorage.setItem("mc_dirty_" + user.id, "1"); setTimeout(cpush, 600) }
     setSy("sincronizado ✅"); draw(1);
   }
   async function cpull(primeira) {
     if (!user) return;
+    if (window.NATIVE && !window.NLOADED) { for (let i = 0; i < 30 && !window.NLOADED; i++) await new Promise(r => setTimeout(r, 100)) }
     let row = null;
     try {
       const r = await sb.from(T).select("data,t").eq("user_id", user.id).limit(1);
@@ -54,15 +79,16 @@
       setSy("sem internet: usando os dados do aparelho");
       ready = true; draw(1); return;
     }
-    const jaSincronizou = localStorage.getItem(FLAG(user.id)) === "1";
+    const jaSincronizou = localStorage.getItem(FLAG(user.id)) === "1" && syncT() > 0;
     if (!row) {
       if (primeira && temDadosLocais()) { levarOuZerar(); return }
       perfilNovo(); return
     }
     if (!jaSincronizou && primeira && temDadosLocais()) { escolher(row); return }
     ready = true;
-    if (!jaSincronizou || (row.t || 0) > (S._t || 0)) { usar(row.data); localStorage.setItem(FLAG(user.id), "1") }
-    else if ((row.t || 0) < (S._t || 0)) await cpush();
+    const rt = +row.t || 0, sujo = localStorage.getItem("mc_dirty_" + user.id) === "1";
+    if (!jaSincronizou || rt > syncT()) { usar(row.data, rt); localStorage.setItem(FLAG(user.id), "1") }  // nuvem mudou: ela vale
+    else if (sujo) await cpush();                                                                          // só este aparelho mudou
     else setSy("sincronizado ✅");
     draw(1);
   }
@@ -182,8 +208,8 @@
       <p>Sua conta já tem dados salvos (${n(row.data)} dias registrados). Este aparelho também tem (${n(S)} dias).<br>Escolha qual fica valendo. A outra será substituída.</p>
       <button class="pri" id="mcn">Usar os da conta (nuvem)</button>
       <button class="sec" id="mcd">Usar os deste aparelho</button>`);
-    el.querySelector("#mcn").onclick = () => { ready = true; localStorage.setItem(FLAG(user.id), "1"); usar(row.data); fechar() };
-    el.querySelector("#mcd").onclick = async () => { ready = true; S._t = Date.now(); saveLocal(); await cpush(); fechar(); draw(1) };
+    el.querySelector("#mcn").onclick = () => { ready = true; localStorage.setItem(FLAG(user.id), "1"); usar(row.data, +row.t || 0); fechar() };
+    el.querySelector("#mcd").onclick = async () => { ready = true; setSync(+row.t || 0); saveLocal(); await cpush(); fechar(); draw(1) };
   }
 
   /* ---------- fotos fora do Claude (site e iPhone) ----------

@@ -627,7 +627,7 @@ if(t.id=="im"){try{S=JSON.parse($("#bk").value);norm();sv();draw()}catch(x){aler
 if(t.id=="ex"){(window.claude?claude.use("downloads"):Promise.reject()).then(d=>{if(d)d.save({filename:"meu-corpo-backup.json",data:JSON.stringify(S)}).catch(()=>{});else alert("Copie o texto da caixa abaixo.")}).catch(()=>alert("Copie o texto da caixa abaixo."));return}});
 try{if(/saude/i.test(location.hash+location.search)){tab="mais";sub="saude"}}catch(e){}
 window.alert=m=>toast(String(m));
-draw();if(NATIVE){nload().then(()=>hkSync(0));try{CP("App").addListener("appStateChange",s=>{if(s.isActive)hkSync(0)})}catch(e){}}else sinc();
+draw();if(NATIVE){nload().then(()=>{window.NLOADED=1;hkSync(0)});try{CP("App").addListener("appStateChange",s=>{if(s.isActive)hkSync(0)})}catch(e){}}else sinc();
 
 </script>
 <script src="supabase.js"></script>
