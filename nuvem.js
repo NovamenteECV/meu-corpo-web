@@ -140,7 +140,7 @@
 
   /* ---------- telas ---------- */
   const css = `
-  #mcl{position:fixed;inset:0;z-index:100;background:linear-gradient(160deg,#0f766e,#134e4a);display:flex;align-items:flex-start;justify-content:center;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:24px;padding-top:calc(24px + env(safe-area-inset-top));font-family:inherit}
+  #mcl{position:fixed;inset:0;z-index:100;background:linear-gradient(160deg,#0f766e,#134e4a);display:flex;flex-direction:column;align-items:center;justify-content:flex-start;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:24px;padding-top:calc(24px + env(safe-area-inset-top));font-family:inherit}
   #mcl .bx{margin:auto 0;background:#fff;border-radius:22px;padding:26px 22px;width:100%;max-width:380px;box-shadow:0 20px 50px rgba(0,0,0,.25);color:#0f172a}
   #mcl h1{font-size:24px;margin:0 0 4px;color:#0f766e}
   #mcl p{margin:0 0 18px;color:#64748b;font-size:14px;line-height:1.45}
@@ -155,6 +155,9 @@
   #mcl .msg.ok{color:#047857}
   #mcl .logo{width:56px;height:56px;border-radius:16px;margin-bottom:12px}
   #mcl button:disabled{opacity:.6}
+  #mcl .bx{margin-bottom:0}
+  #mcl .assin{margin:18px 0 auto;padding-bottom:env(safe-area-inset-bottom);color:rgba(255,255,255,.72);font-size:12px;letter-spacing:.02em;text-align:center}
+  #mcl .assin b{color:#fff;letter-spacing:.05em}
   .mcacc{display:flex;align-items:center;justify-content:space-between;gap:10px}
   .mcacc small{color:#64748b}`;
   const st = document.createElement("style"); st.textContent = css; document.head.appendChild(st);
@@ -162,7 +165,7 @@
   function tela(html) {
     let el = document.getElementById("mcl");
     if (!el) { el = document.createElement("div"); el.id = "mcl"; document.body.appendChild(el) }
-    el.innerHTML = `<div class="bx"><img class="logo" src="icon-192.png" onerror="this.remove()">${html}</div>`;
+    el.innerHTML = `<div class="bx"><img class="logo" src="icon-192.png" onerror="this.remove()">${html}</div><p class="assin">Criado e desenvolvido por <b>VALLEN TECNOLOGIA</b></p>`;
     return el;
   }
   function fechar() { const el = document.getElementById("mcl"); if (el) el.remove() }
