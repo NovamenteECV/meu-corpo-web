@@ -524,6 +524,16 @@
     if (restam != null && +restam <= 3) text += `\n\n(Restam ${restam} consulta(s) de IA hoje.)`;
     return { text };
   };
+  /* As opções de IA só aparecem quando a função está ligada (tem a chave). Guarda a última resposta
+     para não piscar na abertura; sem internet, fica como estava. */
+  const IA_FLAG = "mc_ia_on";
+  try { window.MC_IA_ON = localStorage.getItem(IA_FLAG) === "1" } catch (e) { window.MC_IA_ON = false }
+  fetch(IA_URL, { headers: { apikey: SB_KEY }, cache: "no-store" }).then(r => r.ok ? r.json() : null).then(j => {
+    if (!j) return;
+    const on = !!j.ligada;
+    try { localStorage.setItem(IA_FLAG, on ? "1" : "0") } catch (e) {}
+    if (on !== window.MC_IA_ON) { window.MC_IA_ON = on; try { draw(1) } catch (e) {} }
+  }).catch(() => {});
 
   /* ---------- conta na tela "Nuvem e backup" ---------- */
   const bk0 = bkV;
