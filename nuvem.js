@@ -487,6 +487,44 @@
     location.reload();
   }
 
+  /* ---------- IA fora do Claude (APK e site) ----------
+     Faz o papel do claude.use("sample") do artefato: sm(prompt, { tipo, onText }) -> { text }.
+     Chama a Edge Function meucorpo-ia, que guarda a chave da API e conta o limite por dia.
+     Na primeira vez, a pessoa autoriza o envio dos dados para a Anthropic (S.lgpd.ia). */
+  const IA_URL = SB_URL + "/functions/v1/meucorpo-ia";
+  function autorizarIA() {
+    if (S.lgpd && S.lgpd.ia) return Promise.resolve(true);
+    return new Promise(ok => {
+      const el = tela(`<h1>Usar a IA</h1><p>Para responder, o app envia à <b>Anthropic</b> (empresa do modelo de IA Claude) os dados necessários: perfil, registros recentes, treinos, bioimpedância e exames fora da faixa, conforme a função. O envio é só para gerar a resposta; pelos termos da Anthropic, dados enviados pela API não são usados para treinar os modelos.</p><p>A IA não substitui médico, nutricionista ou personal e não indica doses.</p>
+        <button class="pri" id="mciaok">Autorizar e continuar</button><button class="sec" id="mciano">Agora não</button>`);
+      el.querySelector("#mciaok").onclick = () => { S.lgpd = Object.assign({}, S.lgpd, { ia: new Date().toISOString() }); sv(); fechar(); ok(true) };
+      el.querySelector("#mciano").onclick = () => { fechar(); ok(false) };
+    });
+  }
+  window.MC_IA = async function (prompt, op) {
+    op = op || {};
+    const falha = (code, msg) => Object.assign(new Error(msg), { code, msg });
+    if (!(await autorizarIA())) throw falha("not_granted", "Sem a sua autorização a IA não é usada.");
+    const s = user && (await sb.auth.getSession()).data.session;
+    if (!s) throw falha("sem_login", "Entre na sua conta para usar a IA.");
+    let r;
+    try { r = await fetch(IA_URL, { method: "POST", headers: { "Content-Type": "application/json", apikey: SB_KEY, Authorization: "Bearer " + s.access_token }, body: JSON.stringify({ prompt, tipo: op.tipo || "pergunta" }) }) }
+    catch (e) { throw falha("rede", "Sem internet. Conecte e tente de novo.") }
+    if (!r.ok) { let j = {}; try { j = await r.json() } catch (e) {} throw falha(j.code || "erro", j.msg || "Não consegui usar a IA agora (erro " + r.status + ").") }
+    const restam = r.headers.get("X-IA-Restam");
+    const leitor = r.body.getReader(), dec = new TextDecoder();
+    let text = "";
+    for (;;) {
+      const { done, value } = await leitor.read();
+      if (done) break;
+      text += dec.decode(value, { stream: true });
+      if (op.onText) op.onText({ text });
+    }
+    text += dec.decode();
+    if (restam != null && +restam <= 3) text += `\n\n(Restam ${restam} consulta(s) de IA hoje.)`;
+    return { text };
+  };
+
   /* ---------- conta na tela "Nuvem e backup" ---------- */
   const bk0 = bkV;
   bkV = function () {
