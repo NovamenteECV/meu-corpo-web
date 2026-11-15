@@ -338,7 +338,27 @@
   async function googleLigado() {
     try { const r = await fetch(SB_URL + "/auth/v1/settings", { headers: { apikey: SB_KEY } }); const j = await r.json(); return !!(j.external && j.external.google) } catch (e) { return false }
   }
+  const GOOGLE_WEB_ID = "686404219134-04bblo6kqr0jctaf8u6jdok4292f0oqr.apps.googleusercontent.com";   // ID público do cliente Web do Google (não é segredo)
+  async function sha256hex(s) { const b = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(s)); return [...new Uint8Array(b)].map(x => x.toString(16).padStart(2, "0")).join("") }
+  /* No APK: janela de contas do próprio Android (plugin GoogleLogin) e o token vira sessão no Supabase.
+     Se o Google ainda não tiver o cliente Android configurado, cai no login pelo navegador. */
+  async function googleNativo() {
+    const GL = window.Capacitor && Capacitor.Plugins && Capacitor.Plugins.GoogleLogin;
+    if (!window.NATIVE || !GL) return false;
+    const cru = b64(crypto.getRandomValues(new Uint8Array(24)));
+    let r;
+    try { r = await GL.entrar({ clientId: GOOGLE_WEB_ID, nonce: await sha256hex(cru) }) }
+    catch (e) {
+      if (e && e.code === "cancelado") throw new Error("Login com o Google cancelado.");
+      if (e && e.code === "sem_conta") throw new Error("Nenhuma conta Google neste celular. Adicione uma nas configurações do Android.");
+      return false;   // configuração incompleta ou erro do Google: tenta pelo navegador
+    }
+    const { error } = await sb.auth.signInWithIdToken({ provider: "google", token: r.idToken, nonce: cru });
+    if (error) throw error;
+    return true;
+  }
   async function entrarGoogle() {
+    if (await googleNativo()) return;
     const nat = !!window.NATIVE;
     const { data, error } = await sb.auth.signInWithOAuth({ provider: "google", options: { redirectTo: nat ? VOLTA_SITE : location.origin + location.pathname, skipBrowserRedirect: nat, queryParams: { prompt: "select_account" } } });
     if (error) throw error;
