@@ -334,12 +334,13 @@
      O botão só aparece quando o Google está ligado no Supabase (Authentication → Providers).
      No APK, o Google abre no navegador e volta para o app pelo link com.andremeucorpo.app://login. */
   const VOLTA_APP = "com.andremeucorpo.app://login";
+  const VOLTA_SITE = "https://novamenteecv.github.io/meu-corpo-web/volta.html";   // o Chrome só abre o app a partir de uma página, então o Google volta para cá primeiro
   async function googleLigado() {
     try { const r = await fetch(SB_URL + "/auth/v1/settings", { headers: { apikey: SB_KEY } }); const j = await r.json(); return !!(j.external && j.external.google) } catch (e) { return false }
   }
   async function entrarGoogle() {
     const nat = !!window.NATIVE;
-    const { data, error } = await sb.auth.signInWithOAuth({ provider: "google", options: { redirectTo: nat ? VOLTA_APP : location.origin + location.pathname, skipBrowserRedirect: nat, queryParams: { prompt: "select_account" } } });
+    const { data, error } = await sb.auth.signInWithOAuth({ provider: "google", options: { redirectTo: nat ? VOLTA_SITE : location.origin + location.pathname, skipBrowserRedirect: nat, queryParams: { prompt: "select_account" } } });
     if (error) throw error;
     if (nat && data && data.url) location.href = data.url;   // o Capacitor abre fora do app, no navegador
   }
