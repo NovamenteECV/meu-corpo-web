@@ -84,12 +84,12 @@
         el.querySelector("#mcrt").onclick = () => { fechar(); cpull(false) };
         return;
       }
-      ready = true; draw(1); return;
+      ready = true; draw(1); setTimeout(pedirConsentimento, 300); return;
     }
     const jaSincronizou = localStorage.getItem(FLAG(user.id)) === "1" && syncT() > 0;
     if (!row) {
       // conta sem dados na nuvem: se este aparelho já criou o perfil dela (e não conseguiu enviar), envia; senão, cadastro
-      if (localStorage.getItem("mc_dono") === user.id && S.p && S.p.nome) { ready = true; await cpush(); draw(1); return }
+      if (localStorage.getItem("mc_dono") === user.id && S.p && S.p.nome) { ready = true; await cpush(); draw(1); depoisDeSincronizar(); return }
       perfilNovo(); return
     }
     ready = true;
@@ -98,6 +98,7 @@
     else if (sujo) await cpush();                                                                          // só este aparelho mudou
     else setSy("sincronizado ✅");
     draw(1);
+    depoisDeSincronizar();
   }
   sinc = function () { return cpull(false) };
 
@@ -115,14 +116,15 @@
   /* Conta nova: cadastro em passos (como o do treino). As metas saem do corpo da pessoa e ela pode ajustar. */
   function perfilNovo() {
     const meta0 = (user && user.user_metadata) || {};
-    const D = { nome: meta0.full_name || meta0.name || "", sexo: "", nasc: "", alt: "", peso: "", meta: "", obj: "perder", fat: 1.375, m: null };
+    const D = { aceite: false, nome: meta0.full_name || meta0.name || "", sexo: "", nasc: "", alt: "", peso: "", meta: "", obj: "perder", fat: 1.375, m: null };
     let passo = 0;
     const op = (k, v, t) => `<button class="${String(D[k]) === String(v) ? "on" : ""}" data-op="${k}:${v}">${t}</button>`;
     const n = v => parseFloat(String(v).replace(",", "."));
     const perfil = () => ({ nome: D.nome, sexo: D.sexo, nasc: D.nasc, alt: n(D.alt), meta: n(D.meta), obj: D.obj, fat: +D.fat });
     const P = [
       () => `<h1>Bem-vindo(a)!</h1><p>Vamos montar o app com os seus dados, em 5 passos rápidos. Dá para mudar tudo depois em Mais → Metas e perfil.</p>
-        <label>Nome completo</label><input id="f_nome" autocomplete="name" value="${esc(D.nome)}"><p class="nota">No app aparece só o primeiro nome.</p>`,
+        <label>Nome completo</label><input id="f_nome" autocomplete="name" value="${esc(D.nome)}"><p class="nota">No app aparece só o primeiro nome.</p>
+        ${textoConsentimento(D.aceite)}`,
       () => `<h1>Sobre você</h1><p>Sexo e idade entram no cálculo do gasto de energia do corpo.</p>
         <label>Sexo</label><div class="op">${op("sexo", "m", "Masculino")}${op("sexo", "f", "Feminino")}</div>
         <label>Data de nascimento</label><input id="f_nasc" type="date" value="${D.nasc}">`,
@@ -139,10 +141,11 @@
         <label>Calorias ativas por dia (kcal)</label><input id="f_kat" inputmode="numeric" value="${D.m.kat}">
         <p class="nota">Água: peso × ml por kg conforme a idade (até 17 anos: 40; 18 a 55: 35; 56 a 65: 30; 66 ou mais: 25).</p>`
     ];
-    const ler = el => { el.querySelectorAll("input[id^=f_]").forEach(i => { const k = i.id.slice(2); if (k in D) D[k] = i.value.trim(); else if (D.m) D.m[k] = i.value.trim() }) };
+    const ler = el => { const ac = el.querySelector("#lgpd_ok"); if (ac) D.aceite = ac.checked; el.querySelectorAll("input[id^=f_]").forEach(i => { const k = i.id.slice(2); if (k in D) D[k] = i.value.trim(); else if (D.m) D.m[k] = i.value.trim() }) };
     const valida = () => {
       const p = perfil(), pe = n(D.peso);
       if (passo === 0 && D.nome.split(/\s+/).filter(Boolean).length < 2) return "Informe o nome completo (nome e sobrenome).";
+      if (passo === 0 && !D.aceite) return "Para usar o app, marque que leu a política de privacidade e autoriza o uso dos seus dados.";
       if (passo === 1) { if (!D.sexo) return "Escolha o sexo."; const id = D.nasc ? (Date.now() - new Date(D.nasc + "T00:00:00")) / 31557600000 : 0; if (!(id >= 10 && id <= 100)) return "Informe uma data de nascimento válida." }
       if (passo === 2 && (!(p.alt > 100 && p.alt < 230) || !(pe > 30 && pe < 300))) return "Informe altura (em cm) e peso válidos.";
       if (passo === 3) { if (!(p.meta > 30 && p.meta < 300)) return "Informe o peso que quer alcançar."; if (D.obj === "perder" && p.meta >= pe) return "Para perder gordura, a meta precisa ser menor que o peso de hoje."; if (D.obj === "ganhar" && p.meta <= pe) return "Para ganhar massa, a meta precisa ser maior que o peso de hoje." }
@@ -160,7 +163,7 @@
         if (passo < P.length - 1) { passo++; render(); return }
         const pe = n(D.peso), sug = metasPadrao(perfil(), pe), p = Object.assign(perfil(), { kcal: Math.round(n(D.m.kcal)), prot: Math.round(n(D.m.prot)), passos: Math.round(n(D.m.passos)), kat: Math.round(n(D.m.kat)) });
         const ag = Math.round(n(D.m.agua) * 100) / 100; if (Math.abs(ag - sug.agua) > .01) p.agua = ag;
-        S = S0(); S.p = p; S.log[hoje()] = { peso: pe }; S._t = Date.now();
+        S = S0(); S.p = p; S.log[hoje()] = { peso: pe }; S.lgpd = { v: LGPD_V, em: new Date().toISOString() }; S._t = Date.now();
         norm(); ready = true; saveLocal(); localStorage.removeItem("mc_blank"); localStorage.setItem("mc_dono", user.id);
         el.querySelector("#f_ok").disabled = true; msg("Salvando…", true);
         await cpush(); fechar(); tab = "inicio"; sub = null; draw();
@@ -204,6 +207,12 @@
   .mcov .goo svg{width:20px;height:20px}
   .mcov .ou{display:flex;align-items:center;gap:10px;margin:16px 0 0;color:#94a3b8;font-size:13px}
   .mcov .ou:before,.mcov .ou:after{content:"";flex:1;height:1px;background:#e2e8f0}
+  .mcov .aceite{display:flex;gap:10px;align-items:flex-start;font-weight:400;font-size:13.5px;line-height:1.45;color:#334155;margin:16px 0 0;cursor:pointer}
+  .mcov .aceite input{width:22px;height:22px;flex:0 0 22px;margin:1px 0 0;padding:0;accent-color:#0d9488}
+  .mcov .aceite a{color:#0f766e;font-weight:600}
+  #mcpol{position:fixed;inset:0;z-index:200;background:#fff;display:flex;flex-direction:column;padding-top:env(safe-area-inset-top);padding-bottom:env(safe-area-inset-bottom)}
+  #mcpol iframe{flex:1;border:0;width:100%}
+  #mcpol button{margin:10px 16px 14px;border:0;border-radius:12px;padding:14px;font-size:16px;font-weight:700;background:#0d9488;color:#fff}
   #mctr{z-index:150}
   #mctr .cad{font-size:44px;margin:4px 0 8px}
   .mcacc{display:flex;align-items:center;justify-content:space-between;gap:10px}
@@ -262,9 +271,89 @@
 
 
 
-  /* ---------- fotos fora do Claude (site e iPhone) ----------
-     O app original só salvava fotos no Claude ou no app nativo. Aqui elas são
-     reduzidas e guardadas junto com os dados da conta. */
+  /* ---------- fotos no Supabase Storage ----------
+     As fotos (progresso e exercícios) vão para o bucket privado meucorpo-fotos, na pasta <user_id>/,
+     e no S fica só "sb:<user_id>/<hash>.jpg". O nome é o hash do conteúdo: enviar a mesma foto de novo
+     (dois aparelhos migrando ao mesmo tempo, por exemplo) só sobrescreve o mesmo arquivo.
+     Cada foto baixada fica no Cache do aparelho (mc-fotos), para abrir sem internet.
+     Sem internet, a foto nova fica em base64 no S e sobe na próxima sincronização (migrarFotos). */
+  const BK = "meucorpo-fotos", FC = "mc-fotos";
+  const VAZIA = "data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw==";
+  const FURL = {}, FESPERA = {};
+  let fila = new Set(), ftimer = null, migrando = false;
+  const chaveCache = p => location.origin + "/__mcfoto/" + p;
+  async function abrirCache() { try { return window.caches ? await caches.open(FC) : null } catch (e) { return null } }
+  function redesenhar() { draw(1); try { if (typeof SH !== "undefined" && SH && SH.k == "ex") renderSheet() } catch (e) {} }
+  /* usado pelo srcOf do index.html: devolve o endereço da foto ou uma imagem vazia enquanto ela carrega */
+  window.FOTO_URL = p => {
+    if (FURL[p]) return FURL[p];
+    if (!(FESPERA[p] > Date.now())) { FESPERA[p] = Date.now() + 60000; fila.add(p); clearTimeout(ftimer); ftimer = setTimeout(buscarFotos, 30) }
+    return VAZIA;
+  };
+  async function buscarFotos() {
+    const ps = [...fila]; fila.clear(); if (!ps.length) return;
+    const c = await abrirCache(), falta = []; let achou = false;
+    for (const p of ps) {
+      try { const r = c && await c.match(chaveCache(p)); if (r) { FURL[p] = URL.createObjectURL(await r.blob()); achou = true } else falta.push(p) } catch (e) { falta.push(p) }
+    }
+    if (falta.length && user) {
+      try {
+        const { data, error } = await sb.storage.from(BK).createSignedUrls(falta, 600);
+        if (error) throw error;
+        for (const d of data || []) {
+          if (!d || !d.signedUrl) continue;
+          try {
+            const r = await fetch(d.signedUrl); if (!r.ok) continue;
+            const b = await r.blob();
+            if (c) { try { await c.put(chaveCache(d.path), new Response(b, { headers: { "Content-Type": b.type || "image/jpeg" } })) } catch (e) {} }
+            FURL[d.path] = URL.createObjectURL(b); achou = true;
+          } catch (e) {}
+        }
+      } catch (e) {}
+    }
+    if (achou) redesenhar();
+  }
+  function dataParaBlob(u) {
+    const i = u.indexOf(","), tipo = (u.slice(0, i).match(/data:([^;]+)/) || [])[1] || "image/jpeg", bin = atob(u.slice(i + 1)), a = new Uint8Array(bin.length);
+    for (let k = 0; k < bin.length; k++) a[k] = bin.charCodeAt(k);
+    return new Blob([a], { type: tipo });
+  }
+  async function enviarFoto(dataUrl) {
+    const blob = dataParaBlob(dataUrl);
+    const ext = blob.type === "image/png" ? "png" : blob.type === "image/webp" ? "webp" : "jpg";
+    const p = user.id + "/" + (await sha256hex(dataUrl)).slice(0, 32) + "." + ext;
+    const { error } = await sb.storage.from(BK).upload(p, blob, { upsert: true, contentType: blob.type, cacheControl: "31536000" });
+    if (error) throw error;
+    const c = await abrirCache();
+    if (c) { try { await c.put(chaveCache(p), new Response(blob, { headers: { "Content-Type": blob.type } })) } catch (e) {} }
+    FURL[p] = URL.createObjectURL(blob);
+    return "sb:" + p;
+  }
+  /* reduz e tenta enviar; sem internet devolve a própria foto em base64 (sobe depois) */
+  async function guardarFoto(f, max, q) {
+    const d = await reduzir(f, max, q);
+    if (user && ready) { try { return await enviarFoto(d) } catch (e) {} }
+    return d;
+  }
+  /* Fotos que ainda estão em base64 no S (antigas ou tiradas sem internet) sobem para o Storage. */
+  async function migrarFotos() {
+    if (migrando || !user || !ready) return;
+    const ehB64 = v => typeof v === "string" && v.startsWith("data:image");
+    const lista = (S.fotos || []).map(x => x && x.id).filter(ehB64).concat(Object.values((S.tr && S.tr.ph) || {}).filter(ehB64));
+    if (!lista.length) return;
+    migrando = true;
+    const novo = {};
+    for (const d of lista) { if (novo[d]) continue; try { novo[d] = await enviarFoto(d) } catch (e) { break } }
+    migrando = false;
+    // troca no S atual (ele pode ter sido trocado por um download enquanto as fotos subiam)
+    let mudou = false;
+    (S.fotos || []).forEach(x => { if (x && novo[x.id]) { x.id = novo[x.id]; mudou = true } });
+    const ph = S.tr && S.tr.ph;
+    if (ph) Object.keys(ph).forEach(k => { if (novo[ph[k]]) { ph[k] = novo[ph[k]]; mudou = true } });
+    if (mudou) { sv(); redesenhar() }
+  }
+  const depoisDeSincronizar = () => { setTimeout(migrarFotos, 1500); setTimeout(pedirConsentimento, 300) };
+
   async function reduzir(f, max, q) {
     try { return await shrink(f, max, q) } catch (e) {}
     const url = URL.createObjectURL(f);
@@ -277,36 +366,110 @@
       return cv.toDataURL("image/jpeg", q);
     } finally { URL.revokeObjectURL(url) }
   }
-  if (!NATIVE) {
-    window.NATIVE_PHOTO = async f => {
-      try {
-        const pos = document.getElementById("fpo");
-        S.fotos = S.fotos || [];
-        S.fotos.push({ d: td(), id: await reduzir(f, 800, .72), p: pos ? pos.value : "" });
-        sv(); draw(1); toast("📷 Foto salva");
-      } catch (e) { toast("Não consegui salvar a foto.") }
+  /* vale para o site e para o APK: a foto vai para a conta, não fica só no aparelho */
+  window.NATIVE_PHOTO = async f => {
+    try {
+      const pos = document.getElementById("fpo"), p = pos ? pos.value : "", st = document.getElementById("fst");
+      if (st) st.textContent = "Salvando a foto…";
+      const id = await guardarFoto(f, 800, .74);
+      S.fotos = S.fotos || [];
+      S.fotos.push({ d: td(), id, p });
+      sv(); draw(1); toast(id.startsWith("sb:") ? "📷 Foto salva" : "📷 Foto salva no aparelho (sobe quando tiver internet)");
+    } catch (e) { toast("Não consegui salvar a foto.") }
+  };
+  upPh = async function (id, f) {
+    try {
+      const v = await guardarFoto(f, 520, .72);
+      S.tr.ph = S.tr.ph || {};
+      S.tr.ph[id] = v;
+      sv(); redesenhar(); toast("📷 Foto salva");
+    } catch (e) { toast("Não consegui salvar a foto.") }
+  };
+
+  /* ---------- LGPD: consentimento, política e exclusão da conta ----------
+     Dado de saúde é dado sensível (LGPD, art. 11): o app pede consentimento expresso no cadastro e,
+     para quem já tinha conta, na primeira abertura. Fica em S.lgpd = { v, em }. Se a política mudar
+     de forma importante, suba LGPD_V e todos aceitam de novo. */
+  const LGPD_V = 1;
+  const textoConsentimento = marcado => `<label class="aceite"><input type="checkbox" id="lgpd_ok"${marcado ? " checked" : ""}>
+      <span>Li a <a href="#" data-pol="1">política de privacidade</a> e autorizo o Meu Corpo a guardar e usar os meus dados de saúde (peso, medidas, alimentação, treinos, exames, medicação, fotos e dados do relógio) para as funções do app.</span></label>`;
+  function verPolitica() {
+    let el = document.getElementById("mcpol");
+    if (!el) { el = document.createElement("div"); el.id = "mcpol"; document.body.appendChild(el) }
+    el.innerHTML = `<iframe src="privacypolicy.html" title="Política de privacidade"></iframe><button id="mcpolx">Fechar</button>`;
+    el.querySelector("#mcpolx").onclick = () => el.remove();
+  }
+  function pedirConsentimento() {
+    if (!user || !ready || !S.p || !S.p.nome || (S.lgpd && S.lgpd.v >= LGPD_V) || document.getElementById("mcl")) return;
+    const el = tela(`<h1>Sua privacidade</h1><p>O Meu Corpo guarda dados de saúde, que a lei (LGPD) trata como sensíveis. Para continuar, precisamos da sua autorização.</p>
+      ${textoConsentimento(false)}
+      <button class="pri" id="mcac">Aceitar e continuar</button>
+      <button class="sec" id="mcna">Não aceito</button><div class="msg"></div>`);
+    el.querySelector("#mcac").onclick = () => {
+      if (!el.querySelector("#lgpd_ok").checked) { msg("Marque a caixa acima para continuar."); return }
+      S.lgpd = { v: LGPD_V, em: new Date().toISOString() }; sv(); fechar(); draw(1);
     };
-    upPh = async function (id, f) {
-      try {
-        S.tr.ph = S.tr.ph || {};
-        S.tr.ph[id] = await reduzir(f, 520, .72);
-        sv(); draw(1);
-        if (typeof SH !== "undefined" && SH && SH.k == "ex") renderSheet();
-        toast("📷 Foto salva");
-      } catch (e) { toast("Não consegui salvar a foto.") }
+    el.querySelector("#mcna").onclick = () => {
+      tela(`<h1>Sem autorização</h1><p>Sem a sua autorização o app não pode guardar os seus dados. Você pode sair agora e decidir depois, ou excluir a conta e tudo o que está nela.</p>
+        <button class="pri" id="mcvolta">Voltar e aceitar</button><button class="sec" id="mcsai">Sair da conta</button><button class="lnk" id="mcdel2">Excluir minha conta</button><div class="msg"></div>`);
+      const t = document.getElementById("mcl");
+      t.querySelector("#mcvolta").onclick = () => { fechar(); pedirConsentimento() };
+      t.querySelector("#mcsai").onclick = e => { e.target.disabled = true; e.target.textContent = "Saindo…"; sair() };
+      t.querySelector("#mcdel2").onclick = () => telaExcluir(true);
     };
+  }
+  const fdata = iso => { try { return new Date(iso).toLocaleDateString("pt-BR") } catch (e) { return "" } };
+
+  function telaExcluir(semVolta) {
+    const el = tela(`<h1>Excluir minha conta</h1><p>Isto apaga <b>para sempre</b> a sua conta, todos os seus dados (perfil, pesos, medidas, refeições, treinos, exames, medicação), as fotos e as versões guardadas para recuperação. Não dá para desfazer.</p>
+      <p>Se quiser guardar uma cópia, baixe os seus dados antes.</p>
+      <button class="sec" id="mcbx">Baixar meus dados</button>
+      <label>Para confirmar, digite EXCLUIR</label><input id="mcconf" autocomplete="off" autocapitalize="characters">
+      <button class="pri" id="mcdx" style="background:#b91c1c">Excluir para sempre</button>
+      <button class="lnk" id="mccx">${semVolta ? "Voltar" : "Cancelar"}</button><div class="msg"></div>`);
+    el.querySelector("#mcbx").onclick = () => baixar("meu-corpo-dados-" + hoje() + ".json", JSON.stringify(S, null, 1), "application/json");
+    el.querySelector("#mccx").onclick = () => { fechar(); if (semVolta) pedirConsentimento() };
+    el.querySelector("#mcdx").onclick = async () => {
+      if (el.querySelector("#mcconf").value.trim().toUpperCase() !== "EXCLUIR") { msg("Digite EXCLUIR para confirmar."); return }
+      if (trava()) { try { if (!(await confirmar())) { msg("Não foi possível confirmar que é você."); return } } catch (e) { msg("Não foi possível confirmar que é você."); return } }
+      el.querySelectorAll("button").forEach(b => b.disabled = true); msg("Excluindo…", true);
+      try { await excluirConta() }
+      catch (e) { ready = true; msg("Não deu para excluir: " + traduz(e) + " Seus dados continuam como estavam."); el.querySelectorAll("button").forEach(b => b.disabled = false) }
+    };
+  }
+  /* Apaga as fotos (pela API do Storage), depois a conta no servidor (os dados e o histórico saem em cascata) e por fim o aparelho. */
+  async function excluirConta() {
+    clearTimeout(ctimer); ready = false;
+    const id = user.id;
+    for (let volta = 0; volta < 20; volta++) {
+      const { data, error } = await sb.storage.from(BK).list(id, { limit: 1000 });
+      if (error) throw error;
+      if (!data || !data.length) break;
+      const r = await sb.storage.from(BK).remove(data.map(a => id + "/" + a.name));
+      if (r.error) throw r.error;
+    }
+    const { error } = await sb.rpc("meucorpo_excluir_conta");
+    if (error) throw error;
+    saindo = true;
+    try { await sb.auth.signOut({ scope: "local" }) } catch (x) {}
+    try { [TRV, SYNC(id), FLAG(id), "mc_dirty_" + id, "mc_copia_anterior"].forEach(k => localStorage.removeItem(k)) } catch (x) {}
+    await limparAparelho();
+    try { sessionStorage.setItem("mc_aviso", "Sua conta e todos os seus dados foram excluídos.") } catch (x) {}
+    location.reload();
   }
 
   /* ---------- conta na tela "Nuvem e backup" ---------- */
   const bk0 = bkV;
   bkV = function () {
     const conta = user ? `<div class="c mcacc"><div><small>Conectado como</small><br><b>${esc(user.email || "")}</b></div><button id="mcout">Sair</button></div>` : "";
-    return conta + bk0();
+    const priv = user ? `<div class="c"><b>Privacidade</b><p class="m" style="margin:6px 0 10px">${S.lgpd && S.lgpd.em ? `Você autorizou o uso dos seus dados em ${fdata(S.lgpd.em)}.` : "Seus dados de saúde são só seus."} Você pode baixá-los em Exportar, acima, e excluir a conta quando quiser.</p><div class="r"><button id="mcpolb">Política de privacidade</button><button id="mcdel" style="color:#b91c1c">Excluir minha conta</button></div></div>` : "";
+    return conta + bk0() + priv;
   };
   /* tira os dados desta pessoa do aparelho (no "Sair" e quando a conta deixou de existir) */
   async function limparAparelho() {
     try { localStorage.removeItem(KEY); localStorage.removeItem("mc_dono"); localStorage.setItem("mc_blank", "1") } catch (x) {}
     try { if (window.Capacitor && Capacitor.Plugins.Preferences) await Capacitor.Plugins.Preferences.remove({ key: KEY }) } catch (x) {}
+    try { if (window.caches) await caches.delete(FC) } catch (x) {}   // cópias das fotos
   }
   /* A conta foi excluída no servidor, mas o aparelho ainda tinha a sessão: sai e volta para o login com aviso. */
   let saindo = false;
@@ -328,6 +491,10 @@
   }
   document.addEventListener("click", e => {
     if (e.target && e.target.id === "mcout") { e.target.disabled = true; e.target.textContent = "Saindo…"; sair() }
+    if (e.target && e.target.id === "mcdel") telaExcluir(false);
+    if (e.target && e.target.id === "mcpolb") verPolitica();
+    const pol = e.target && e.target.closest && e.target.closest("[data-pol]");
+    if (pol) { e.preventDefault(); verPolitica() }
   });
 
   /* ---------- login com o Google ----------
