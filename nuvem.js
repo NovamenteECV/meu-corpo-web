@@ -381,7 +381,29 @@
     if (ph) Object.keys(ph).forEach(k => { if (novo[ph[k]]) { ph[k] = novo[ph[k]]; mudou = true } });
     if (mudou) { sv(); redesenhar() }
   }
-  const depoisDeSincronizar = () => { setTimeout(migrarFotos, 1500); setTimeout(pedirConsentimento, 300) };
+  /* ---------- aparelho (painel da Gestão) ----------
+     Cada aparelho grava a própria linha em meucorpo_aparelhos (fora do S): plataforma, modelo, versão do app
+     e build do APK. No máximo a cada 6 horas, depois de sincronizar. */
+  async function registrarAparelho() {
+    try {
+      if (!user || !ready) return;
+      const VK = "mc_aparelho_visto_" + user.id;
+      if (Date.now() - +(localStorage.getItem(VK) || 0) < 6 * 3600e3) return;
+      let id = localStorage.getItem("mc_aparelho");
+      if (!id) { id = [...crypto.getRandomValues(new Uint8Array(12))].map(b => b.toString(16).padStart(2, "0")).join(""); localStorage.setItem("mc_aparelho", id) }
+      const ua = navigator.userAgent || "", ios = /iPhone|iPad|iPod/.test(ua);
+      let build = null;
+      try { if (window.NATIVE && Capacitor.Plugins.App && Capacitor.Plugins.App.getInfo) build = parseInt((await Capacitor.Plugins.App.getInfo()).build, 10) || null } catch (e) {}
+      const and = ua.match(/Android [\d.]+; ([^;)]+)/);
+      const modelo = (window.NATIVE ? "" : ios ? "iPhone · " : "") + (and ? and[1].replace(/ Build\/.*/, "").trim() : ios ? "Safari" : /Edg\//.test(ua) ? "Edge" : /Chrome\//.test(ua) ? "Chrome" : /Firefox\//.test(ua) ? "Firefox" : "navegador");
+      const { error } = await sb.from("meucorpo_aparelhos").upsert({
+        user_id: user.id, aparelho: id, plataforma: window.NATIVE ? "android" : ios ? "iphone" : "web",
+        app_ver: typeof APP_VER !== "undefined" ? APP_VER : null, build, modelo: modelo.slice(0, 120), visto: new Date().toISOString()
+      });
+      if (!error) localStorage.setItem(VK, String(Date.now()));
+    } catch (e) {}
+  }
+  const depoisDeSincronizar = () => { setTimeout(migrarFotos, 1500); setTimeout(pedirConsentimento, 300); setTimeout(registrarAparelho, 3000) };
 
   async function reduzir(f, max, q) {
     try { return await shrink(f, max, q) } catch (e) {}

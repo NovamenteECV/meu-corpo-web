@@ -1,6 +1,6 @@
 // Ao publicar versão nova, mude o número em CACHE.
 // "mc-fotos" é o cache das fotos da conta (nuvem.js): não pode ser apagado ao trocar de versão.
-const CACHE = "meucorpo-web-v26";
+const CACHE = "meucorpo-web-v27";
 const BASE = ["./", "index.html", "nuvem.js", "supabase.js", "manifest.webmanifest", "icon-180.png", "icon-192.png", "icon-512.png"];
 self.addEventListener("install", e => { e.waitUntil(caches.open(CACHE).then(c => c.addAll(BASE)).then(() => self.skipWaiting())); });
 self.addEventListener("activate", e => { e.waitUntil(caches.keys().then(ks => Promise.all(ks.filter(k => k !== CACHE && k !== "mc-fotos").map(k => caches.delete(k)))).then(() => self.clients.claim())); });
