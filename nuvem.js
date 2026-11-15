@@ -743,4 +743,9 @@
     }
   });
   document.addEventListener("visibilitychange", () => { if (!document.hidden && user && ready) cpull(false) });
+
+  /* Versão mínima, link do APK e aviso para todos (tabela meucorpo_config, editada pela Gestão). Lido sem login. */
+  window.MC_CFG = () => fetch(SB_URL + "/rest/v1/meucorpo_config?id=eq.1&select=*", { headers: { apikey: SB_KEY }, cache: "no-store" })
+    .then(r => r.ok ? r.json() : []).then(a => a[0] || null).catch(() => null);
+  try { VCHK = 0; checaVersao() } catch (e) {}
 })();
