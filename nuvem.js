@@ -5,6 +5,16 @@
   const SB_KEY = "sb_publishable_pfKC3mv8VL-trq8Fv8iTqQ_GnklcdDe";
   const T = "meucorpo_state";
   if (!window.supabase || SB_URL.indexOf("__") === 0) return;
+  const SITE = "https://novamenteecv.github.io/meu-corpo-web/";   // o link do e-mail de senha sempre abre o site (também quando o pedido saiu do APK)
+  const APK_URL = "https://github.com/NovamenteECV/meu-corpo-web/releases/latest/download/MeuCorpo.apk";
+  /* Link do e-mail "Esqueci a senha": lido antes do supabase-js limpar o endereço. */
+  const H0 = new URLSearchParams(location.hash.slice(1));
+  let recuperando = H0.get("type") === "recovery";
+  if (H0.get("error_description")) {
+    const ex = H0.get("error_code") === "otp_expired" ? "O link expirou ou já foi usado. Peça outro em Esqueci a senha." : H0.get("error_description");
+    try { sessionStorage.setItem("mc_aviso", ex) } catch (e) {}
+    try { history.replaceState(null, "", location.pathname + location.search) } catch (e) {}
+  }
 
   const sb = window.supabase.createClient(SB_URL, SB_KEY, {
     auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: true, storage: window.localStorage }
@@ -214,6 +224,8 @@
   #mcpol iframe{flex:1;border:0;width:100%}
   #mcpol button{margin:10px 16px 14px;border:0;border-radius:12px;padding:14px;font-size:16px;font-weight:700;background:#0d9488;color:#fff}
   #mctr{z-index:150}
+  #mcns{z-index:170}
+  .mcov .apk{display:block;text-align:center;margin-top:14px;color:#0f766e;font-weight:600;font-size:14px;text-decoration:none}
   #mctr .cad{font-size:44px;margin:4px 0 8px}
   .mcacc{display:flex;align-items:center;justify-content:space-between;gap:10px}
   .mcacc small{color:#64748b}`;
@@ -233,6 +245,10 @@
     if (s.includes("already registered") || s.includes("already been registered")) return "Esse e-mail já tem conta. Toque em Entrar.";
     if (s.includes("not confirmed")) return "Confirme o e-mail pelo link que enviamos e tente de novo.";
     if (s.includes("signups not allowed") || s.includes("signup is disabled")) return "Novos cadastros estão fechados.";
+    if (s.includes("not authorized") || s.includes("error sending")) return "O envio de e-mails do app ainda não está liberado para este endereço. Peça ao administrador um link para trocar a senha.";
+    if (s.includes("rate limit") || s.includes("security purposes") || s.includes("too many")) return "Muitos pedidos seguidos. Espere alguns minutos e tente de novo.";
+    if (s.includes("same") && s.includes("password")) return "A senha nova precisa ser diferente da anterior.";
+    if (s.includes("expired") || s.includes("invalid") && s.includes("link")) return "O link expirou ou já foi usado. Peça outro em Esqueci a senha.";
     if (s.includes("password")) return "A senha precisa ter pelo menos 6 caracteres.";
     if (s.includes("fetch") || s.includes("network")) return "Sem internet. Conecte e tente de novo.";
     return e && e.message ? e.message : "Não deu certo. Tente de novo.";
@@ -244,6 +260,8 @@
       <label>Senha</label><input id="mcs" type="password" autocomplete="current-password">
       <button class="pri" id="mcin">Entrar</button>
       <button class="sec" id="mcup">Criar conta</button>
+      <button class="lnk" id="mcesq">Esqueci a senha</button>
+      ${!window.NATIVE && /android/i.test(navigator.userAgent) ? `<a class="apk" href="${APK_URL}">📲 Baixar o app para Android</a>` : ""}
       <div id="mcgoo" hidden><div class="ou">ou</div><button class="goo" id="mcg"><svg viewBox="0 0 48 48" aria-hidden="true"><path fill="#FFC107" d="M43.6 20.5H42V20H24v8h11.3C33.7 32.7 29.2 36 24 36c-6.6 0-12-5.4-12-12s5.4-12 12-12c3.1 0 5.8 1.2 7.9 3.1l5.7-5.7C34 6.1 29.3 4 24 4 12.9 4 4 12.9 4 24s8.9 20 20 20 20-8.9 20-20c0-1.3-.1-2.4-.4-3.5z"/><path fill="#FF3D00" d="M6.3 14.7l6.6 4.8C14.7 15.1 19 12 24 12c3.1 0 5.8 1.2 7.9 3.1l5.7-5.7C34 6.1 29.3 4 24 4 16.3 4 9.7 8.3 6.3 14.7z"/><path fill="#4CAF50" d="M24 44c5.2 0 9.9-2 13.4-5.2l-6.2-5.2C29.2 35.1 26.7 36 24 36c-5.2 0-9.6-3.3-11.3-8l-6.5 5C9.5 39.6 16.2 44 24 44z"/><path fill="#1976D2" d="M43.6 20.5H42V20H24v8h11.3c-.8 2.2-2.2 4.2-4.1 5.6l6.2 5.2C37 39.2 44 34 44 24c0-1.3-.1-2.4-.4-3.5z"/></svg>Entrar com o Google</button></div>
       <div class="msg"></div>`);
     googleLigado().then(ok => { const g = el.querySelector("#mcgoo"); if (ok && g) g.hidden = false });
@@ -261,6 +279,17 @@
         const r = cadastro ? await sb.auth.signUp({ email, password }) : await sb.auth.signInWithPassword({ email, password });
         if (r.error) throw r.error;
         if (cadastro && !r.data.session) { msg("Conta criada. Abra o e-mail, toque no link de confirmação e depois entre aqui.", true) }
+      } catch (e) { msg(traduz(e)) }
+      el.querySelectorAll("button").forEach(b => b.disabled = false);
+    };
+    el.querySelector("#mcesq").onclick = async () => {
+      const email = el.querySelector("#mce").value.trim();
+      if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { msg("Escreva o seu e-mail no campo acima e toque de novo em Esqueci a senha."); el.querySelector("#mce").focus(); return }
+      el.querySelectorAll("button").forEach(b => b.disabled = true); msg("Enviando…", true);
+      try {
+        const { error } = await sb.auth.resetPasswordForEmail(email, { redirectTo: SITE });
+        if (error) throw error;
+        msg("Se esse e-mail tiver conta, enviamos um link para criar uma senha nova. Veja também o spam. O link vale por 1 hora.", true);
       } catch (e) { msg(traduz(e)) }
       el.querySelectorAll("button").forEach(b => b.disabled = false);
     };
@@ -605,8 +634,33 @@
 
   /* ---------- sessão ---------- */
   let ultimo = null;
+  /* Senha nova depois do link do e-mail. Fica por cima de tudo (cadastro, consentimento, trava). */
+  function telaNovaSenha() {
+    let el = document.getElementById("mcns");
+    if (!el) { el = document.createElement("div"); el.id = "mcns"; el.className = "mcov"; document.body.appendChild(el) }
+    el.innerHTML = `<div class="bx"><img class="logo" src="icon-192.png" onerror="this.remove()"><h1>Senha nova</h1><p>Crie a senha nova da conta${user && user.email ? ` <b>${esc(user.email)}</b>` : ""}.</p>
+      <label>Senha nova</label><input id="mcn1" type="password" autocomplete="new-password">
+      <label>Repita a senha</label><input id="mcn2" type="password" autocomplete="new-password">
+      <button class="pri" id="mcnok">Salvar senha</button><div class="msg" id="mcnm"></div></div><p class="assin">Criado e desenvolvido por <b>VALLEN TECNOLOGIA</b></p>`;
+    const m = (t, ok) => { const x = el.querySelector("#mcnm"); x.textContent = t; x.className = "msg" + (ok ? " ok" : "") };
+    el.querySelector("#mcnok").onclick = async () => {
+      const a = el.querySelector("#mcn1").value, b = el.querySelector("#mcn2").value;
+      if (a.length < 6) { m("A senha precisa ter pelo menos 6 caracteres."); return }
+      if (a !== b) { m("As duas senhas não são iguais."); return }
+      const bt = el.querySelector("#mcnok"); bt.disabled = true; m("Salvando…", true);
+      try {
+        const { error } = await sb.auth.updateUser({ password: a });
+        if (error) throw error;
+        recuperando = false;
+        el.querySelector(".bx").innerHTML = `<img class="logo" src="icon-192.png" onerror="this.remove()"><h1>Senha alterada ✅</h1><p>Pronto. Use a senha nova para entrar no app em qualquer celular, inclusive no app do Android.</p><button class="pri" id="mcnfim">Continuar</button>`;
+        el.querySelector("#mcnfim").onclick = () => el.remove();
+      } catch (e) { m(traduz(e)); bt.disabled = false }
+    };
+  }
+
   sb.auth.onAuthStateChange((ev, session) => {
     const u = session && session.user;
+    if (ev === "PASSWORD_RECOVERY" || (recuperando && u)) { recuperando = false; if (u) user = u; setTimeout(telaNovaSenha, 0) }
     if (u && (!ultimo || ultimo !== u.id)) {
       ultimo = u.id; user = u; ready = false; fechar();
       // confere no servidor se a conta ainda existe (sem internet, segue normal)
