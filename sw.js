@@ -1,11 +1,12 @@
 // Ao publicar versão nova, mude o número em CACHE.
-const CACHE = "meucorpo-web-v16";
+const CACHE = "meucorpo-web-v17";
 const BASE = ["./", "index.html", "nuvem.js", "supabase.js", "manifest.webmanifest", "icon-180.png", "icon-192.png", "icon-512.png"];
 self.addEventListener("install", e => { e.waitUntil(caches.open(CACHE).then(c => c.addAll(BASE)).then(() => self.skipWaiting())); });
 self.addEventListener("activate", e => { e.waitUntil(caches.keys().then(ks => Promise.all(ks.filter(k => k !== CACHE).map(k => caches.delete(k)))).then(() => self.clients.claim())); });
 self.addEventListener("fetch", e => {
   const u = new URL(e.request.url);
   if (e.request.method !== "GET" || u.origin !== self.location.origin) return; // nunca guarda dados da nuvem
+  if (u.pathname.endsWith("/versao.json")) return; // versão mínima: sempre da rede
   // página: tenta a rede primeiro (pega versão nova), cai no cache sem internet
   if (e.request.mode === "navigate") {
     e.respondWith(fetch(e.request).then(r => { const cp = r.clone(); caches.open(CACHE).then(c => c.put("index.html", cp)); return r; }).catch(() => caches.match("index.html")));
