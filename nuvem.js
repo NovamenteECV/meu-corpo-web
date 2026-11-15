@@ -22,8 +22,11 @@
   window.SB = sb;
 
   let user = null, ready = false, cbusy = false, cdirty = false, ctimer = null;
+  let mudancas = 0;   // conta os push(): a marca mc_dirty só sai quando nada mudou durante o envio
   const FLAG = id => "mc_sync_" + id;
-  const setSy = t => { try { sy = t } catch (e) {} };
+  /* sy: texto da situação; mc_salvo_em: quando a nuvem confirmou pela última vez (para o aviso "Tudo salvo na nuvem há …") */
+  const setSy = t => { try { sy = t } catch (e) {} try { if (/salvo na nuvem|sincronizado/.test(t)) localStorage.setItem("mc_salvo_em", String(Date.now())) } catch (e) {} try { window.MC_SY_ATUALIZA && MC_SY_ATUALIZA() } catch (e) {} };
+  window.MC_SY_ESTADO = () => ({ logado: !!user, pendente: !!user && localStorage.getItem("mc_dirty_" + user.id) === "1", em: +localStorage.getItem("mc_salvo_em") || 0, txt: (() => { try { return sy } catch (e) { return "" } })() });
   const saveLocal = () => {
     try { localStorage.setItem(KEY, JSON.stringify(S)) } catch (e) {}
     if (window.NATIVE_SAVE) window.NATIVE_SAVE();
@@ -46,15 +49,17 @@
       if (nuvemT > syncT()) { cbusy = false; await cpull(false); return }   // outro aparelho salvou depois: baixa antes
       const t = Math.max(Date.now(), nuvemT + 1);
       S._t = t;
+      const n0 = mudancas;
       const { error } = await sb.from(T).upsert({ user_id: user.id, data: S, t, updated_at: new Date().toISOString() });
       if (error && error.code === "23503") { cbusy = false; contaSumiu(); return }   // a conta foi excluída no servidor
       if (error) setSy("erro na nuvem: " + error.message);
-      else { setSync(t); localStorage.setItem(FLAG(user.id), "1"); try { localStorage.setItem(KEY, JSON.stringify(S)) } catch (e) {} setSy("salvo na nuvem ✅") }
+      else { setSync(t); localStorage.setItem(FLAG(user.id), "1"); if (mudancas === n0) localStorage.removeItem("mc_dirty_" + user.id); try { localStorage.setItem(KEY, JSON.stringify(S)) } catch (e) {} setSy("salvo na nuvem ✅") }
     } catch (e) { setSy("sem internet: salvo no aparelho") }
     cbusy = false;
     if (cdirty) { cdirty = false; cpush() }
   }
   push = async function () {
+    mudancas++;
     if (window.NATIVE_SAVE) window.NATIVE_SAVE();
     if (user && ready) localStorage.setItem("mc_dirty_" + user.id, "1");
     clearTimeout(ctimer);

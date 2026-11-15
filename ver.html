@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="pt-BR"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<meta name="referrer" content="no-referrer">
+<meta name="theme-color" content="#0f766e">
+<title>Acompanhamento · Meu Corpo</title>
+<style>
+:root{--tc:#0d9488;--tx:#0f172a;--mu:#64748b;--ln:#e5eaf0;--bg:#f3f5f8;--card:#fff;--wa:#dc2626;--ok:#16a34a}
+*{box-sizing:border-box}body{margin:0;font:15px/1.5 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;background:var(--bg);color:var(--tx)}
+header{background:linear-gradient(160deg,#0f766e,#134e4a);color:#fff;padding:26px 18px 30px}header h1{margin:0;font-size:22px}header p{margin:4px 0 0;opacity:.9;font-size:14px}
+main{max-width:760px;margin:-16px auto 30px;padding:0 14px}.c{background:var(--card);border-radius:18px;padding:16px;margin-bottom:14px;box-shadow:0 2px 10px rgba(15,23,42,.06)}
+h2{font-size:16px;margin:0 0 10px;color:#0f766e}.kp{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:10px;margin-bottom:14px}.kp div{background:var(--card);border-radius:16px;padding:12px}.kp b{display:block;font-size:20px}.kp small{color:var(--mu)}
+table{width:100%;border-collapse:collapse;font-size:13.5px}th,td{text-align:left;padding:7px 6px;border-bottom:1px solid var(--ln)}th{color:var(--mu);font-weight:600}td.w{color:var(--wa);font-weight:600}
+.m{color:var(--mu);font-size:13px}.aviso{text-align:center;padding:50px 20px}svg text{font-family:inherit}
+</style></head>
+<body>
+<header><h1 id="tit">Acompanhamento</h1><p id="sub">Carregando…</p></header>
+<main id="v"></main>
+<script>
+/* Meu Corpo · página só de leitura de um link "Compartilhar com profissional".
+   Pede ao banco (função meucorpo_ver_compartilhado) só as partes que a pessoa escolheu. Sem login, sem cookies. */
+(function () {
+  const SB_URL = "https://swqjqsdpzwcgtwihwttw.supabase.co", SB_KEY = "sb_publishable_pfKC3mv8VL-trq8Fv8iTqQ_GnklcdDe";
+  const token = location.hash.slice(1);
+  const $ = id => document.getElementById(id);
+  const esc = s => String(s ?? "").replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+  const f1 = (x, d = 1) => x == null || isNaN(x) ? "–" : (+x).toFixed(d).replace(".", ",");
+  const fd = d => String(d).length >= 10 ? String(d).slice(0, 10).split("-").reverse().join("/") : d;
+  const dias = (a, b) => Math.round((new Date(b + "T12:00:00") - new Date(a + "T12:00:00")) / 864e5);
+  const tab = (cab, linhas) => `<table><tr>${cab.map(c => `<th>${c}</th>`).join("")}</tr>${linhas.map(l => `<tr>${l.map(c => `<td${c && c.w ? ' class="w"' : ""}>${esc(c && c.t != null ? c.t : c)}</td>`).join("")}</tr>`).join("")}</table>`;
+  function grafico(pts, meta, un) {
+    if (pts.length < 2) return `<p class="m">Poucas medidas para o gráfico.</p>`;
+    const W = 700, H = 220, vs = pts.map(p => p[1]).concat(meta != null ? [meta] : []), lo = Math.floor(Math.min(...vs) - 1), hi = Math.ceil(Math.max(...vs) + 1), d0 = pts[0][0], sp = Math.max(1, dias(d0, pts[pts.length - 1][0])), X = d => 40 + dias(d0, d) / sp * (W - 56), Y = v => 14 + (hi - v) / (hi - lo) * (H - 42);
+    const mm = pts.length >= 4 ? pts.map(a => [a[0], pts.filter(b => b[0] <= a[0] && dias(b[0], a[0]) < 7).reduce((s, b, i, arr) => s + b[1] / arr.length, 0)]) : [];
+    return `<svg viewBox="0 0 ${W} ${H}" width="100%" role="img" aria-label="Gráfico">${[lo, (lo + hi) / 2, hi].map(v => `<line x1="40" x2="${W - 10}" y1="${Y(v)}" y2="${Y(v)}" stroke="#e5eaf0"/><text x="2" y="${Y(v) + 4}" font-size="12" fill="#64748b">${f1(v, v % 1 ? 1 : 0)}</text>`).join("")}${meta != null ? `<line x1="40" x2="${W - 10}" y1="${Y(meta)}" y2="${Y(meta)}" stroke="#16a34a" stroke-dasharray="5 5"/><text x="${W - 12}" y="${Y(meta) - 5}" font-size="12" text-anchor="end" fill="#16a34a">meta ${f1(meta, 1)} ${un}</text>` : ""}${mm.length ? `<polyline fill="none" stroke="#f59e0b" stroke-width="2.5" stroke-dasharray="6 4" points="${mm.map(a => X(a[0]).toFixed(1) + "," + Y(a[1]).toFixed(1)).join(" ")}"/>` : ""}<polyline fill="none" stroke="#0d9488" stroke-width="3" stroke-linejoin="round" points="${pts.map(a => X(a[0]).toFixed(1) + "," + Y(a[1]).toFixed(1)).join(" ")}"/>${pts.map(a => `<circle cx="${X(a[0]).toFixed(1)}" cy="${Y(a[1]).toFixed(1)}" r="3.5" fill="#0d9488"/>`).join("")}<text x="40" y="${H - 6}" font-size="12" fill="#64748b">${fd(d0)}</text><text x="${W - 10}" y="${H - 6}" font-size="12" text-anchor="end" fill="#64748b">${fd(pts[pts.length - 1][0])}</text></svg>${mm.length ? `<p class="m">Linha verde: medidas. Tracejada laranja: média de 7 dias.</p>` : ""}`;
+  }
+  function erro(t) { $("tit").textContent = "Link indisponível"; $("sub").textContent = ""; $("v").innerHTML = `<div class="c aviso"><p>${esc(t)}</p></div>` }
+  if (!/^[A-Za-z0-9_-]{32,64}$/.test(token)) { erro("Este link está incompleto. Peça um link novo a quem compartilhou."); return }
+  fetch(SB_URL + "/rest/v1/rpc/meucorpo_ver_compartilhado", { method: "POST", headers: { apikey: SB_KEY, "Content-Type": "application/json" }, body: JSON.stringify({ p_token: token }), cache: "no-store" })
+    .then(r => r.ok ? r.json() : Promise.reject(r.status)).then(d => {
+      if (!d) { erro("Este link expirou ou foi cancelado. Peça um link novo a quem compartilhou."); return }
+      $("tit").textContent = "Acompanhamento de " + (d.nome || "paciente");
+      $("sub").textContent = (d.para ? "Compartilhado com " + d.para + " · " : "") + "só leitura · vale até " + new Date(d.ate).toLocaleDateString("pt-BR");
+      const P = d.partes || [], L = d.log || {}, ks = Object.keys(L).sort(), h = [];
+      const pes = ks.filter(k => L[k].peso != null).map(k => [k, +L[k].peso]), cin = ks.filter(k => L[k].cint != null).map(k => [k, +L[k].cint]);
+      const kp = [];
+      if (pes.length) { const u = pes[pes.length - 1][1]; kp.push([f1(u, 1) + " kg", "peso em " + fd(pes[pes.length - 1][0])], [(u - pes[0][1] > 0 ? "+" : "") + f1(u - pes[0][1], 1) + " kg", "desde " + fd(pes[0][0])]); if (d.alt) kp.push([f1(u / ((d.alt / 100) ** 2), 1), "IMC"]) }
+      if (cin.length) kp.push([f1(cin[cin.length - 1][1], 1) + " cm", "cintura"]);
+      if (kp.length) h.push(`<div class="kp">${kp.map(x => `<div><b>${esc(x[0])}</b><small>${esc(x[1])}</small></div>`).join("")}</div>`);
+      if (P.includes("peso")) h.push(`<div class="c"><h2>Peso</h2>${grafico(pes, d.meta != null ? +d.meta : null, "kg")}${tab(["Data", "Peso (kg)"], pes.slice().reverse().slice(0, 40).map(p => [fd(p[0]), f1(p[1], 2)]))}</div>`);
+      if (P.includes("medidas")) h.push(`<div class="c"><h2>Cintura (umbigo)</h2>${grafico(cin, null, "cm")}${tab(["Data", "Cintura (cm)"], cin.slice().reverse().slice(0, 40).map(p => [fd(p[0]), f1(p[1], 1)]))}</div>`);
+      if (P.includes("bio")) { const B = (d.bios || []).slice().sort((a, b) => a.d < b.d ? 1 : -1); h.push(`<div class="c"><h2>Bioimpedância</h2>${B.length ? tab(["Data", "Peso", "Gordura kg", "Gordura %", "Músculo kg", "Visceral", "TMB"], B.map(x => [fd(x.d), f1(x.peso), f1(x.gk), f1(x.gp), f1(x.mus), x.vis ?? "–", x.tmb ? Math.round(x.tmb) : "–"])) : `<p class="m">Nenhuma registrada.</p>`}</div>`) }
+      if (P.includes("exames")) { const R = (d.ex && d.ex.r) || [], H2 = Object.entries(d.exh || {}).flatMap(([n, a]) => (a || []).map(x => [n, fd(x[0]), String(x[1]).replace(".", ",")])); h.push(`<div class="c"><h2>Exames${d.ex && d.ex.d ? " · " + esc(d.ex.d) : ""}</h2>${R.length ? tab(["Exame", "Resultado", "Referência"], R.map(x => [x[0], { t: x[1], w: !!x[3] }, x[2] || "–"])) : `<p class="m">Nenhum registrado.</p>`}${H2.length ? `<h2 style="margin-top:14px">Resultados adicionados depois</h2>${tab(["Exame", "Data", "Valor"], H2)}` : ""}</div>`) }
+      if (P.includes("treinos")) { const T = (d.ses || []).slice().sort((a, b) => a.d < b.d ? 1 : -1); h.push(`<div class="c"><h2>Treinos · ${T.length} registrado(s)</h2>${T.length ? tab(["Data", "Treino", "Duração", "Esforço (RPE)"], T.slice(0, 40).map(s => [fd(s.d), "Treino " + String(s.key || "").replace(/^S(?=[A-Z]$)/, ""), s.dur ? s.dur + " min" : "–", s.rpe ?? "–"])) : `<p class="m">Nenhum registrado.</p>`}</div>`) }
+      h.push(`<p class="m" style="text-align:center">Dados registrados pela própria pessoa no app Meu Corpo. Não é laudo nem prescrição.</p>`);
+      $("v").innerHTML = h.join("");
+    }).catch(() => erro("Não consegui carregar agora. Confira a internet e tente de novo."));
+})();
+</script>
+</body></html>
