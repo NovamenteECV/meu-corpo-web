@@ -346,7 +346,7 @@
   }
   async function voltaDoGoogle(url) {
     if (!url || url.indexOf(VOLTA_APP) !== 0) return;
-    const u = new URL(url.replace(VOLTA_APP, "https://app/login")), h = new URLSearchParams(u.hash.slice(1)), code = u.searchParams.get("code");
+    const u = new URL(url.replace(VOLTA_APP, "https://app/login")), h = new URLSearchParams(u.search.slice(1) + "&" + u.hash.slice(1)), code = h.get("code");
     try {
       if (code) { const r = await sb.auth.exchangeCodeForSession(code); if (r.error) throw r.error }
       else if (h.get("access_token")) { const r = await sb.auth.setSession({ access_token: h.get("access_token"), refresh_token: h.get("refresh_token") }); if (r.error) throw r.error }

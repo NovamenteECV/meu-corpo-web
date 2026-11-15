@@ -22,18 +22,23 @@ a.pri{display:block;background:#0d9488;color:#fff;border-radius:12px;padding:15p
    e esta página passa a sessão para o app pelo link com.andremeucorpo.app://login. */
 (function () {
   var h = location.hash, q = location.search, erro = /error/.test(h + q);
-  var alvo = "com.andremeucorpo.app://login" + (q && /code=/.test(q) ? q : "") + (h || "");
+  // dados da sessão vão na consulta (?...), que passa inteira pelo intent do Android
+  var dados = [q && /code=/.test(q) ? q.slice(1) : "", h ? h.slice(1) : ""].filter(Boolean).join("&");
+  var esquema = "com.andremeucorpo.app://login" + (dados ? "?" + dados : "");
+  var android = /Android/i.test(navigator.userAgent);
+  // intent:// aponta direto para o pacote do app: funciona no Chrome e nos navegadores baseados nele (inclusive o do Xiaomi)
+  var alvo = android ? "intent://login" + (dados ? "?" + dados : "") + "#Intent;scheme=com.andremeucorpo.app;package=com.andremeucorpo.app;end" : esquema;
   history.replaceState(null, "", location.pathname);   // tira os dados da sessão da barra de endereço
   if (erro) {
-    var p = new URLSearchParams((h || q).replace(/^[#?]/, ""));
+    var p = new URLSearchParams(dados);
     document.getElementById("t").textContent = "Não deu certo";
     document.getElementById("d").textContent = p.get("error_description") || "O login com o Google foi cancelado.";
-  } else if (!/access_token=|code=/.test(alvo)) {
+  } else if (!/access_token=|code=/.test(dados)) {
     document.getElementById("t").textContent = "Meu Corpo";
     document.getElementById("d").textContent = "Abra o app e entre de novo.";
   }
-  document.getElementById("ir").href = erro ? "com.andremeucorpo.app://login" : alvo;
-  if (!erro) setTimeout(function () { location.href = alvo }, 150);
+  document.getElementById("ir").href = erro ? esquema.split("?")[0] : alvo;
+  if (!erro && dados) setTimeout(function () { location.href = alvo }, 150);
 })();
 </script>
 </body></html>
