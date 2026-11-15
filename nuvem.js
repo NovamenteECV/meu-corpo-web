@@ -37,6 +37,7 @@
       const t = Math.max(Date.now(), nuvemT + 1);
       S._t = t;
       const { error } = await sb.from(T).upsert({ user_id: user.id, data: S, t, updated_at: new Date().toISOString() });
+      if (error && error.code === "23503") { cbusy = false; contaSumiu(); return }   // a conta foi excluída no servidor
       if (error) setSy("erro na nuvem: " + error.message);
       else { setSync(t); localStorage.setItem(FLAG(user.id), "1"); try { localStorage.setItem(KEY, JSON.stringify(S)) } catch (e) {} setSy("salvo na nuvem ✅") }
     } catch (e) { setSy("sem internet: salvo no aparelho") }
@@ -174,7 +175,10 @@
   #mcl h1{font-size:24px;margin:0 0 4px;color:#0f766e}
   #mcl p{margin:0 0 18px;color:#64748b;font-size:14px;line-height:1.45}
   #mcl label{display:block;font-size:13px;font-weight:600;margin:12px 0 6px;color:#334155}
-  #mcl input{width:100%;box-sizing:border-box;border:1.5px solid #cbd5e1;border-radius:12px;padding:13px 14px;font-size:16px;background:#f8fafc}
+  #mcl{color-scheme:light}
+  #mcl input{width:100%;box-sizing:border-box;border:1.5px solid #cbd5e1;border-radius:12px;padding:13px 14px;font-size:16px;background:#f8fafc;color:#0f172a;-webkit-text-fill-color:#0f172a}
+  #mcl input::placeholder{color:#94a3b8;-webkit-text-fill-color:#94a3b8}
+  #mcl input:-webkit-autofill{-webkit-box-shadow:0 0 0 40px #f8fafc inset}
   #mcl input:focus{outline:none;border-color:#0d9488;background:#fff}
   #mcl button{width:100%;border:0;border-radius:12px;padding:14px;font-size:16px;font-weight:700;margin-top:16px;cursor:pointer}
   #mcl .pri{background:#0d9488;color:#fff}
@@ -225,6 +229,7 @@
       <button class="pri" id="mcin">Entrar</button>
       <button class="sec" id="mcup">Criar conta</button>
       <div class="msg"></div>`);
+    try { const av = sessionStorage.getItem("mc_aviso"); if (av) { msg(av); sessionStorage.removeItem("mc_aviso") } } catch (x) {}
     const go = async cadastro => {
       const email = el.querySelector("#mce").value.trim(), password = el.querySelector("#mcs").value;
       if (!email || !password) { msg("Preencha e-mail e senha."); return }
@@ -285,14 +290,27 @@
     const conta = user ? `<div class="c mcacc"><div><small>Conectado como</small><br><b>${esc(user.email || "")}</b></div><button id="mcout">Sair</button></div>` : "";
     return conta + bk0();
   };
+  /* tira os dados desta pessoa do aparelho (no "Sair" e quando a conta deixou de existir) */
+  async function limparAparelho() {
+    try { localStorage.removeItem(KEY); localStorage.removeItem("mc_dono"); localStorage.setItem("mc_blank", "1") } catch (x) {}
+    try { if (window.Capacitor && Capacitor.Plugins.Preferences) await Capacitor.Plugins.Preferences.remove({ key: KEY }) } catch (x) {}
+  }
+  /* A conta foi excluída no servidor, mas o aparelho ainda tinha a sessão: sai e volta para o login com aviso. */
+  let saindo = false;
+  async function contaSumiu() {
+    if (saindo) return; saindo = true;
+    clearTimeout(ctimer); ready = false;
+    try { await sb.auth.signOut({ scope: "local" }) } catch (x) {}
+    await limparAparelho();
+    try { sessionStorage.setItem("mc_aviso", "Esta conta não existe mais. Entre com outra conta ou crie uma nova.") } catch (x) {}
+    location.reload();
+  }
   document.addEventListener("click", async e => {
     if (e.target && e.target.id === "mcout") {
       e.target.disabled = true; e.target.textContent = "Saindo…";
       clearTimeout(ctimer); await cpush();
       await sb.auth.signOut();
-      /* não deixa os dados desta pessoa no aparelho para a próxima */
-      try { localStorage.removeItem(KEY); localStorage.removeItem("mc_dono"); localStorage.setItem("mc_blank", "1") } catch (x) {}
-      try { if (window.Capacitor && Capacitor.Plugins.Preferences) await Capacitor.Plugins.Preferences.remove({ key: KEY }) } catch (x) {}
+      await limparAparelho();   // não deixa os dados desta pessoa no aparelho para a próxima
       location.reload();
     }
   });
@@ -303,6 +321,8 @@
     const u = session && session.user;
     if (u && (!ultimo || ultimo !== u.id)) {
       ultimo = u.id; user = u; ready = false; fechar();
+      // confere no servidor se a conta ainda existe (sem internet, segue normal)
+      sb.auth.getUser().then(r => { const e = r && r.error; if (e && (e.status === 401 || e.status === 403 || e.status === 404 || /not exist|not found/i.test(e.message || ""))) contaSumiu() }).catch(() => {});
       setSy("sincronizando…"); cpull(true);
     } else if (!u) {
       ultimo = null; user = null; ready = false;
