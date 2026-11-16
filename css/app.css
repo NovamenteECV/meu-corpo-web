@@ -174,3 +174,11 @@ summary::-webkit-details-marker{display:none}
 .cmpi{width:100%;justify-content:space-between;background:none;border:0;border-bottom:1px solid var(--ln);border-radius:0;padding:10px 2px;min-height:46px;font-weight:500;text-align:left}.cmpi.ok b{text-decoration:line-through;color:var(--mu)}
 .cbv{width:100%;border-radius:14px;margin-top:10px;background:#000;max-height:300px;object-fit:cover}
 #toast.toast{z-index:200}
+/* 15/11/2026 (2): barras de progresso, desfazer, letra e contraste, laudo, minigráfico dos exames */
+.dbar{height:8px;border-radius:6px;background:var(--sf);overflow:hidden;margin-top:10px}.dbar i{display:block;height:100%;background:var(--tc);border-radius:6px}
+.mcta{position:fixed;left:12px;right:12px;bottom:calc(env(safe-area-inset-bottom,0px) + 84px);z-index:200;max-width:520px;margin:0 auto;background:#0f172a;color:#fff;border-radius:14px;padding:10px 10px 10px 16px;display:flex;align-items:center;gap:12px;box-shadow:0 10px 28px rgba(0,0,0,.3)}.mcta span{flex:1}.mcta button{background:none;border:0;color:#5eead4;font-weight:700;min-height:40px}
+:root[data-letra="g"] body{zoom:1.12}:root[data-letra="gg"] body{zoom:1.25}
+:root[data-contraste="1"]{--mu:#334155;--ln:#94a3b8}:root[data-contraste="1"][data-theme="dark"]{--mu:#e2e8f0;--ln:#64748b}
+@media(prefers-color-scheme:dark){:root[data-contraste="1"]:not([data-theme="light"]){--mu:#e2e8f0;--ln:#64748b}}
+.lbtn{display:flex;align-items:center;justify-content:center;gap:8px;min-height:44px;border:1.5px dashed var(--ln);border-radius:14px;cursor:pointer;font-weight:600}
+.exsp{display:flex;align-items:center;gap:8px;margin-top:4px}.exsp small{margin:0}

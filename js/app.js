@@ -2,7 +2,7 @@
    Arquivos carregados em ordem pelo index.html (scripts comuns, escopo global compartilhado).
    Criado e desenvolvido por VALLEN TECNOLOGIA */
 // ---------- NÚCLEO ----------
-function aplicarTema(){const r=document.documentElement;if(S.tema)r.dataset.theme=S.tema;else delete r.dataset.theme}
+function aplicarTema(){const r=document.documentElement;if(S.tema)r.dataset.theme=S.tema;else delete r.dataset.theme;try{aplicarA11y()}catch(e){}}
 function draw(keep){aplicarTema();if(!S.p.nome){$("#nv").innerHTML="";$("#v").innerHTML=`<div style="min-height:80vh;display:grid;place-items:center;color:var(--mu)">Carregando…</div>`;return}setRefs();if(!S.tr.cfg&&isSF())S.tr.cfg={loc:"acad",eq:[...LOC[0][2]],dias:[0,1,2,3,4,5],dur:60,exp:"ini",lim:[]};document.body.dataset.tab=tab;nav();const V={inicio:vInicio,diario:vDiario,treino:vTreino,evo:vEvo,mais:vMais};$("#v").innerHTML=(V[tab]||vInicio)();if(!keep)window.scrollTo(0,0);if(tab=="inicio")requestAnimationFrame(animRings);else RGPREV=null}
 const LG=()=>S.log[dt]=S.log[dt]||{};
 const clean=L=>{if(!Object.keys(L).length)delete S.log[dt]};
@@ -37,7 +37,7 @@ if(t.id=="sksv"&&SH){const md=SH.mode=="Outro"?"Cardio":SH.mode,mi=num($("#kmi")
 if(t.id=="skrest"&&SH){S.tr.day=S.tr.day||{};S.tr.day[td()]="descanso";if(SH.fp){S.tr.cur=null;RT=null}closeSheet();sv();tab="treino";draw();toast("😴 Descanso registrado");return}
 if(t.id=="cfy"&&SH&&SH.fn){const f=SH.fn;closeSheet();f();return}
 if(D.tcan){ask("Descartar este treino sem salvar?","Descartar treino",()=>{S.tr.cur=null;RT=null;sv();tab="treino";draw()});return}
-if(D.tdel!=null){const ix=+D.tdel;ask("Apagar este treino do histórico?","Apagar",()=>{S.tr.ses.splice(ix,1);sv();draw(1)});return}
+if(D.tdel!=null){const ix=+D.tdel;ask("Apagar este treino do histórico?","Apagar",()=>{lixo("treino",S.tr.ses.splice(ix,1)[0]);sv();draw(1)});return}
 if(D.trst){ask("Recomeçar o bloco de 8 semanas a partir da semana 1?","Recomeçar",()=>{S.tr.start=td();sv();tv="hoje";TD=null;draw()});return}
 if(D.tstart){tab="treino";TSEL=null}
 if(trClick(t,D)){if(D.tcan&&!S.tr.cur)closeSheet();else if(SH&&SH.k=="ex")renderSheet();return}
@@ -49,10 +49,10 @@ if(D.cup){const L=LG(),v=+D.cup*.25;L.agua=Math.abs((L.agua||0)-v)<.01?v-.25:v;i
 if(D.ate!=null){const a=S.ate[dt]=S.ate[dt]||{};a[D.ate]=!a[D.ate];sumAte();sv();draw(1);return}
 if(D.fsel!=null&&SH){SH.sel=D.fsel||null;SH.mul=1;renderSheet();return}
 if(D.mul&&SH){SH.mul=+D.mul;renderSheet();return}
-if(D.fx!=null){(S.food[dt]||[]).splice(+D.fx,1);if(S.food[dt]&&!S.food[dt].length)delete S.food[dt];sumAte();sv();draw(1);return}
+if(D.fx!=null){const e0=(S.food[dt]||[]).splice(+D.fx,1)[0];if(e0)lixo("comida",{d:dt,e:e0});if(S.food[dt]&&!S.food[dt].length)delete S.food[dt];sumAte();sv();draw(1);return}
 if(D.s){const[k,v]=D.s.split(":"),L=LG(),x=v=="true"?true:+v;if(L[k]===x)delete L[k];else L[k]=x;clean(L);sv();if(SH)renderSheet();else draw(1);return}
 if(D.d){const x=pendList().find(y=>y[0]==D.d);if(!x)return;if(x[4]){S.done[x[0]]=!S.done[x[0]];sv();draw(1);return}const a=x[3];if(a=="treino"){tab="treino";draw()}else if(a=="dieta"){tab="diario";dsub="plano";draw()}else if(a=="perfil"){tab="mais";sub="perfil";draw()}else if(a=="peso")openSheet("peso");else if(a=="foto"){tab="evo";esub="fotos";draw()}else if(a=="bio"){tab="evo";esub="corpo";draw()}return}
-if(D.pdel){const id=D.pdel;S.pend=S.pend.filter(x=>x.id!=id);delete S.done[id];sv();draw(1);return}
+if(D.pdel){const id=D.pdel;lixo("pend",S.pend.find(x=>x.id==id));S.pend=S.pend.filter(x=>x.id!=id);delete S.done[id];sv();draw(1);return}
 if(t.id=="padd"){const v=$("#pnew").value.trim();if(!v){toast("Escreva a pendência.");return}S.pend.push({id:"p"+Date.now().toString(36),t:v});PDO=true;sv();draw(1);return}
 if(D.dplano){tab="diario";dsub="plano";sub=null;draw();return}
 if(D.dm&&DT){const k=D.dm;if(DT.refs.some(r=>r.k==k))DT.refs=DT.refs.filter(r=>r.k!=k);else DT.refs.push({k,h:REFS.find(x=>x[0]==k)[5]});draw(1);return}
@@ -68,8 +68,8 @@ if(D.tema){S.tema=D.tema=="auto"?"":D.tema;sv();draw(1);return}
 if(D.lhc){S.lh=S.lh||{};S.lh.acada=+D.lhc;sv();draw(1);lembAgendar();return}
 if(D.lht){S.lh=S.lh||{};S.lh.tantes=+D.lht;sv();draw(1);lembAgendar();return}
 if(D.efx){t.classList.toggle("on");return}
-if(D.exdel!=null){const ix=+D.exdel;ask("Apagar este exame e o histórico dele?","Apagar",()=>{const x=S.ex.r.splice(ix,1)[0];if(x)delete S.exh[x[0]];sv();draw(1)});return}
-if(D.bdel!=null){const ix=+D.bdel;ask("Apagar esta medição de bioimpedância?","Apagar",()=>{S.bios.splice(ix,1);sv();draw(1)});return}
+if(D.exdel!=null){const ix=+D.exdel;ask("Apagar este exame e o histórico dele?","Apagar",()=>{const x=S.ex.r.splice(ix,1)[0];if(x){lixo("exame",{r:x,h:S.exh[x[0]]||null});delete S.exh[x[0]]}sv();draw(1)});return}
+if(D.bdel!=null){const ix=+D.bdel;ask("Apagar esta medição de bioimpedância?","Apagar",()=>{lixo("bio",S.bios.splice(ix,1)[0]);sv();draw(1)});return}
 if(D.w){dd=+D.w;draw(1);return}
 if(D.f){S.p.fat=+D.f;sv();draw(1);return}
 if(D.b){S.bad[D.b]=!S.bad[D.b];sv();t.classList.toggle("x");return}
@@ -90,8 +90,11 @@ async function baixar(nome,txt,tipo){try{const f=new File([txt],nome,{type:tipo}
 /* Versão mínima: o site publica versao.json. Se este app for mais antigo, bloqueia e pede para atualizar. */
 const VURL="https://novamenteecv.github.io/meu-corpo-web/versao.json";let VCHK=0;
 /* Versão mínima e aviso: versao.json do site + meucorpo_config do Supabase (editado pela Gestão, lido por window.MC_CFG do nuvem.js). Vale o maior "min". */
-async function checaVersao(){if(Date.now()-VCHK<3e5)return;VCHK=Date.now();let v=null,c=null;try{const r=await fetch(VURL+"?t="+Date.now(),{cache:"no-store"});if(r.ok)v=await r.json()}catch(e){}try{c=window.MC_CFG?await MC_CFG():null}catch(e){}if(c){v=v||{};if(+c.min>(+v.min||0)){v.min=+c.min;if(c.msg)v.msg=c.msg}if(c.apk)v.apk=c.apk;mostraAviso(c)}if(!v)return;if(+v.min>APP_VER)bloqueiaVersao(v);else try{sessionStorage.removeItem("mc_vrl")}catch(e){}}
-function mostraAviso(c){let el=document.getElementById("mcav");const vale=c&&c.aviso_texto&&c.aviso_id&&!(c.aviso_ate&&new Date(c.aviso_ate)<new Date());let ok="";try{ok=localStorage.getItem("mc_aviso_ok")||""}catch(e){}if(!vale||ok==c.aviso_id){if(el)el.remove();return}if(!el){el=document.createElement("div");el.id="mcav";document.body.appendChild(el)}el.className="mcav"+(c.aviso_tipo=="alerta"?" al":"");el.setAttribute("role","status");el.innerHTML=`<div>${c.aviso_titulo?`<b>${esc(c.aviso_titulo)}</b>`:""}<p>${esc(c.aviso_texto)}</p></div><button class="sm" id="mcavok">Entendi</button>`;el.querySelector("#mcavok").onclick=()=>{try{localStorage.setItem("mc_aviso_ok",c.aviso_id)}catch(e){}el.remove()}}
+async function checaVersao(){if(Date.now()-VCHK<3e5)return;VCHK=Date.now();let v=null,c=null;try{const r=await fetch(VURL+"?t="+Date.now(),{cache:"no-store"});if(r.ok)v=await r.json()}catch(e){}try{c=window.MC_CFG?await MC_CFG():null}catch(e){}if(c){v=v||{};if(+c.min>(+v.min||0)){v.min=+c.min;if(c.msg)v.msg=c.msg}if(c.apk)v.apk=c.apk}try{await avisoEscolher(c)}catch(e){}if(!v)return;if(+v.min>APP_VER)bloqueiaVersao(v);else try{sessionStorage.removeItem("mc_vrl")}catch(e){}}
+/* avisos: o geral da meucorpo_config (Gestão, "agora") e os da meucorpo_avisos (agendados ou para esta pessoa, window.MC_AVISOS do nuvem.js). Mostra o primeiro que ainda não teve "Entendi". */
+const avisosVistos=()=>{try{return(localStorage.getItem("mc_aviso_ok")||"").split(",").filter(Boolean)}catch(e){return[]}};
+async function avisoEscolher(c){const L=[];if(c&&c.aviso_texto&&c.aviso_id)L.push(c);try{const t=window.MC_AVISOS?await MC_AVISOS():[];(t||[]).forEach(a=>L.push({aviso_id:"t"+a.id,aviso_texto:a.texto,aviso_titulo:a.titulo,aviso_tipo:a.tipo,aviso_ate:a.ate}))}catch(e){}const vis=avisosVistos();mostraAviso(L.find(a=>!vis.includes(String(a.aviso_id))&&!(a.aviso_ate&&new Date(a.aviso_ate)<new Date()))||null)}
+function mostraAviso(c){let el=document.getElementById("mcav");const vale=c&&c.aviso_texto&&c.aviso_id&&!(c.aviso_ate&&new Date(c.aviso_ate)<new Date());if(!vale||avisosVistos().includes(String(c.aviso_id))){if(el)el.remove();return}if(!el){el=document.createElement("div");el.id="mcav";document.body.appendChild(el)}el.className="mcav"+(c.aviso_tipo=="alerta"?" al":"");el.setAttribute("role","status");el.innerHTML=`<div>${c.aviso_titulo?`<b>${esc(c.aviso_titulo)}</b>`:""}<p>${esc(c.aviso_texto)}</p></div><button class="sm" id="mcavok">Entendi</button>`;el.querySelector("#mcavok").onclick=()=>{try{localStorage.setItem("mc_aviso_ok",avisosVistos().concat(String(c.aviso_id)).slice(-30).join(","))}catch(e){}el.remove();VCHK=0;checaVersao()}}
 function bloqueiaVersao(v){if(!NATIVE){try{if(!sessionStorage.getItem("mc_vrl")){sessionStorage.setItem("mc_vrl","1");location.reload();return}}catch(e){}}let el=document.getElementById("mcver");if(!el){el=document.createElement("div");el.id="mcver";document.body.appendChild(el)}el.style.cssText="position:fixed;inset:0;z-index:300;background:linear-gradient(160deg,#0f766e,#134e4a);display:grid;place-items:center;padding:24px";el.innerHTML=`<div style="background:#fff;color:#0f172a;border-radius:22px;padding:26px 22px;max-width:380px;width:100%;text-align:center"><div style="font-size:44px">⬆️</div><h2 style="color:#0f766e;font-size:22px;margin:6px 0">Existe uma nova versão</h2><p style="color:#64748b;margin:0 0 16px">${esc(v.msg||(NATIVE?"Esta versão do Meu Corpo não é mais aceita. Instale a versão nova para continuar; seus dados estão salvos na sua conta.":"Feche o app e abra de novo para carregar a versão nova."))}</p>${NATIVE&&v.apk?`<a href="${esc(v.apk)}" target="_blank" rel="noopener" style="display:block;background:#0d9488;color:#fff;border-radius:12px;padding:14px;font-weight:700;text-decoration:none">Baixar a versão nova</a>`:""}${NATIVE?"":`<button onclick="location.reload()" style="width:100%;background:#0d9488;color:#fff;border:0;border-radius:12px;padding:14px;font-weight:700">Recarregar</button>`}</div>`}
 document.addEventListener("visibilitychange",()=>{if(!document.hidden)checaVersao()});
 document.addEventListener("toggle",e=>{if(e.target.id=="pdet")PDO=e.target.open},true);

@@ -76,8 +76,8 @@ function mkEx(e,sk,f,leve){const pr=presc(e,f,leve),sg=sug(e,pr,f);return{id:e[0
 function startT(key){const f=fase();S.tr.cur={d:td(),key,t0:Date.now(),leve:LEVE,ex:sess(key).map(x=>mkEx(x.e,x.sk,f,LEVE))};S.tr.last=null;sv();tv="hoje";draw()}
 const elap=()=>S.tr.cur?Math.floor((Date.now()-S.tr.cur.t0)/60000)+" min":"";
 function beep(){try{if(!AC)return;[0,.3,.6].forEach(t=>{const o=AC.createOscillator(),g=AC.createGain();o.frequency.value=880;o.connect(g);g.connect(AC.destination);g.gain.setValueAtTime(.25,AC.currentTime+t);o.start(AC.currentTime+t);o.stop(AC.currentTime+t+.18)})}catch(e){}}
-function rest(sec){try{AC=AC||new(window.AudioContext||window.webkitAudioContext)()}catch(e){}RT={end:Date.now()+sec*1e3,tot:sec};if(!TI)TI=setInterval(tick,250);tick()}
-function tick(){const el=document.getElementById("tmr"),te=document.getElementById("tel");if(te)te.textContent=elap();if(!RT){if(el)el.style.display="none";return}const left=Math.max(0,Math.ceil((RT.end-Date.now())/1e3));if(el){el.style.display="flex";el.querySelector("b").textContent=fmtT(left);el.querySelector("i").style.width=Math.min(100,100-left/RT.tot*100)+"%"}if(left<=0){RT=null;beep();try{navigator.vibrate&&navigator.vibrate([300,150,300])}catch(e){}if(el)el.style.display="none"}}
+function rest(sec){try{AC=AC||new(window.AudioContext||window.webkitAudioContext)()}catch(e){}RT={end:Date.now()+sec*1e3,tot:sec};restNotif(RT.end);if(!TI)TI=setInterval(tick,250);tick()}
+function tick(){const el=document.getElementById("tmr"),te=document.getElementById("tel");if(te)te.textContent=elap();if(!RT){if(el)el.style.display="none";restCancela();return}const left=Math.max(0,Math.ceil((RT.end-Date.now())/1e3));if(el){el.style.display="flex";el.querySelector("b").textContent=fmtT(left);el.querySelector("i").style.width=Math.min(100,100-left/RT.tot*100)+"%"}if(left<=0){RT=null;beep();try{navigator.vibrate&&navigator.vibrate([300,150,300])}catch(e){}if(el)el.style.display="none"}}
 function lastDoseDays(){const ds=Object.keys(S.log).filter(k=>S.log[k].dose).sort();return ds.length?days(ds[ds.length-1],td()):null}
 function trInput(t){const c=S.tr.cur;if(!c)return;const[i,j,fl]=t.dataset.ts.split(":"),x=c.ex[+i];if(!x)return;const s=x.sets[+j],v=fl=="rir"?(t.value===""?null:+t.value):(num(t.value)??null);if(fl=="kg"){const old=s.kg;x.sets.forEach((z,k)=>{if(k>+j&&!z.done&&z.kg===old)z.kg=v})}s[fl]=v;sv();if(fl=="kg")draw(1)}
 function finishT(){const c=S.tr.cur,f=fase(),ex=c.ex.map(x=>({id:x.id,sets:x.sets.filter(s=>s.done).map(s=>({kg:s.kg,r:s.r,rir:s.rir}))})).filter(x=>x.sets.length);if(!ex.length){alert("Marque pelo menos uma série como feita (OK).");return}
@@ -99,8 +99,8 @@ if(D.tsw!=null){const c=S.tr.cur,i=+D.tsw,n=cycleSw(c.ex[i].sk);if(n){if(c.ex[i]
 if(D.psw){cycleSw(D.psw);sv();draw(1);return 1}
 if(D.tfin){finishT();return 1}
 if(D.tcan){if(confirm("Descartar este treino sem salvar?")){S.tr.cur=null;RT=null;sv();draw()}return 1}
-if(D.tdel!=null){if(confirm("Apagar este treino do histórico?")){S.tr.ses.splice(+D.tdel,1);sv();draw(1)}return 1}
-if(D.cdel!=null){S.tr.cardio.splice(+D.cdel,1);sv();draw(1);return 1}
+if(D.tdel!=null){if(confirm("Apagar este treino do histórico?")){lixo("treino",S.tr.ses.splice(+D.tdel,1)[0]);sv();draw(1)}return 1}
+if(D.cdel!=null){lixo("cardio",S.tr.cardio.splice(+D.cdel,1)[0]);sv();draw(1);return 1}
 if(D.cty){window.CTY=D.cty;draw(1);return 1}
 if(t.id=="csv"){const mi=num($("#cmi").value),km=num($("#ckm").value);if(!mi||mi<=0){alert("Informe os minutos.");return 1}S.tr.cardio.push({d:td(),tipo:window.CTY||"Caminhada",min:Math.round(mi),km:km||null});sv();draw(1);return 1}
 if(t.id=="tia"){trIA();return 1}
