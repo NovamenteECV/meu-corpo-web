@@ -5,7 +5,7 @@
   const SB_KEY = "sb_publishable_pfKC3mv8VL-trq8Fv8iTqQ_GnklcdDe";
   const T = "meucorpo_state";
   if (!window.supabase || SB_URL.indexOf("__") === 0) return;
-  const SITE = "https://novamenteecv.github.io/meu-corpo-web/";   // o link do e-mail de senha sempre abre o site (também quando o pedido saiu do APK)
+  const SITE = "https://fitness.vallentecnologia.com.br/";   // o link do e-mail de senha sempre abre o site (também quando o pedido saiu do APK)
   const APK_URL = "https://github.com/NovamenteECV/meu-corpo-web/releases/latest/download/MeuCorpo.apk";
   /* Link do e-mail "Esqueci a senha": lido antes do supabase-js limpar o endereço. */
   const H0 = new URLSearchParams(location.hash.slice(1));
@@ -605,7 +605,7 @@
      O botão só aparece quando o Google está ligado no Supabase (Authentication → Providers).
      No APK, o Google abre no navegador e volta para o app pelo link com.andremeucorpo.app://login. */
   const VOLTA_APP = "com.andremeucorpo.app://login";
-  const VOLTA_SITE = "https://novamenteecv.github.io/meu-corpo-web/volta.html";   // o Chrome só abre o app a partir de uma página, então o Google volta para cá primeiro
+  const VOLTA_SITE = "https://fitness.vallentecnologia.com.br/volta.html";   // o Chrome só abre o app a partir de uma página, então o Google volta para cá primeiro
   async function googleLigado() {
     try { const r = await fetch(SB_URL + "/auth/v1/settings", { headers: { apikey: SB_KEY } }); const j = await r.json(); return !!(j.external && j.external.google) } catch (e) { return false }
   }

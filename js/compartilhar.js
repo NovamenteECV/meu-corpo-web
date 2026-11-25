@@ -3,7 +3,7 @@
    Arquivos carregados em ordem pelo index.html (scripts comuns, escopo global compartilhado).
    Criado e desenvolvido por VALLEN TECNOLOGIA */
 
-const COMP_SITE="https://novamenteecv.github.io/meu-corpo-web/ver.html#";
+const COMP_SITE="https://fitness.vallentecnologia.com.br/ver.html#";
 const COMP_PARTES=[["peso","Peso"],["medidas","Cintura"],["bio","Bioimpedância"],["exames","Exames"],["treinos","Treinos"]];
 let COMP={lista:null,erro:"",novo:null,para:"",partes:["peso","medidas","bio"],dias:30};
 const compLink=t=>COMP_SITE+t;
