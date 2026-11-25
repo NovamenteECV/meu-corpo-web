@@ -3,7 +3,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="author" content="VALLEN TECNOLOGIA">
 <meta name="robots" content="noindex">
-<title>Meu Corpo</title>
+<title>Vallen Fitness</title>
 <style>
 body{margin:0;min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:24px;box-sizing:border-box;background:linear-gradient(160deg,#0f766e,#134e4a);font:16px/1.45 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif;color:#0f172a}
 .bx{background:#fff;border-radius:22px;padding:26px 22px;width:100%;max-width:380px;box-shadow:0 20px 50px rgba(0,0,0,.25);text-align:center}
@@ -15,7 +15,7 @@ a.pri{display:block;background:#0d9488;color:#fff;border-radius:12px;padding:15p
 .assin{margin-top:18px;color:rgba(255,255,255,.75);font-size:12px}.assin b{color:#fff;letter-spacing:.05em}
 </style></head>
 <body>
-<div class="bx"><img class="logo" src="icon-192.png" alt=""><h1 id="t">Login feito</h1><p id="d">Voltando para o app Meu Corpo…</p><a class="pri" id="ir" href="#">Voltar para o app</a><p class="m" id="m">Se o app não abrir sozinho, toque no botão. Depois, pode fechar esta aba.</p></div>
+<div class="bx"><img class="logo" src="icon-192.png" alt=""><h1 id="t">Login feito</h1><p id="d">Voltando para o app Vallen Fitness…</p><a class="pri" id="ir" href="#">Voltar para o app</a><p class="m" id="m">Se o app não abrir sozinho, toque no botão. Depois, pode fechar esta aba.</p></div>
 <p class="assin">Criado e desenvolvido por <b>VALLEN TECNOLOGIA</b></p>
 <script>
 /* Volta do login com Google para o APK. O Supabase manda para cá (endereço do próprio site, sempre aceito)
@@ -34,7 +34,7 @@ a.pri{display:block;background:#0d9488;color:#fff;border-radius:12px;padding:15p
     document.getElementById("t").textContent = "Não deu certo";
     document.getElementById("d").textContent = p.get("error_description") || "O login com o Google foi cancelado.";
   } else if (!/access_token=|code=/.test(dados)) {
-    document.getElementById("t").textContent = "Meu Corpo";
+    document.getElementById("t").textContent = "Vallen Fitness";
     document.getElementById("d").textContent = "Abra o app e entre de novo.";
   }
   document.getElementById("ir").href = erro ? esquema.split("?")[0] : alvo;

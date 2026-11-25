@@ -1,4 +1,4 @@
-/* Meu Corpo · medidas do corpo (quadril, peito, braço, coxa, panturrilha), gráficos do relógio (passos, sono,
+/* Vallen Fitness · medidas do corpo (quadril, peito, braço, coxa, panturrilha), gráficos do relógio (passos, sono,
    calorias ativas, batimentos em repouso) e evolução de cada exame.
    Arquivos carregados em ordem pelo index.html (scripts comuns, escopo global compartilhado).
    Criado e desenvolvido por VALLEN TECNOLOGIA */

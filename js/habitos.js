@@ -1,4 +1,4 @@
-/* Meu Corpo · hábitos: aviso de sincronização, sequências e conquistas, check-in semanal, ciclo menstrual e comparação de fotos.
+/* Vallen Fitness · hábitos: aviso de sincronização, sequências e conquistas, check-in semanal, ciclo menstrual e comparação de fotos.
    Arquivos carregados em ordem pelo index.html (scripts comuns, escopo global compartilhado).
    Criado e desenvolvido por VALLEN TECNOLOGIA */
 

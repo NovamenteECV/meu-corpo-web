@@ -1,4 +1,4 @@
-/* Meu Corpo · atalhos do ícone e widget da tela inicial (só no APK).
+/* Vallen Fitness · atalhos do ícone e widget da tela inicial (só no APK).
    - Atalhos (segurar o ícone) e toques no widget abrem com.andremeucorpo.app://acao/<agua|peso|treino|inicio>.
    - O widget mostra os números de hoje: o app manda para o plugin nativo Widget a cada salvamento (nsave).
    Arquivos carregados em ordem pelo index.html (scripts comuns, escopo global compartilhado).

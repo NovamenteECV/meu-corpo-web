@@ -1,4 +1,4 @@
-/* Meu Corpo · lixeira com "Desfazer", letra maior e contraste, aviso do fim do descanso (APK), jejum,
+/* Vallen Fitness · lixeira com "Desfazer", letra maior e contraste, aviso do fim do descanso (APK), jejum,
    refeições favoritas e tamanho do copo.
    Arquivos carregados em ordem pelo index.html (scripts comuns, escopo global compartilhado).
    Criado e desenvolvido por VALLEN TECNOLOGIA */

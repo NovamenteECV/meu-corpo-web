@@ -1,4 +1,4 @@
-/* Meu Corpo · erros do app: carregado antes de tudo. Anota na tabela meucorpo_erros a mensagem do erro, o arquivo,
+/* Vallen Fitness · erros do app: carregado antes de tudo. Anota na tabela meucorpo_erros a mensagem do erro, o arquivo,
    a linha, a tela, a versão, a plataforma e o navegador, para a Gestão ver. Nenhum dado de saúde vai junto.
    No máximo 5 erros por abertura do app, sem repetir o mesmo.
    Criado e desenvolvido por VALLEN TECNOLOGIA */

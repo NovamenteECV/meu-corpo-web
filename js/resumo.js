@@ -1,4 +1,4 @@
-/* Meu Corpo · resumo da semana sem IA (por regras, com os dados da própria pessoa), meta de peso com data
+/* Vallen Fitness · resumo da semana sem IA (por regras, com os dados da própria pessoa), meta de peso com data
    e desafio da semana. Arquivos carregados em ordem pelo index.html (scripts comuns, escopo global compartilhado).
    Criado e desenvolvido por VALLEN TECNOLOGIA */
 

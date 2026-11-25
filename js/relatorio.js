@@ -1,4 +1,4 @@
-/* Meu Corpo · relatório em PDF (para a consulta) e planilhas (CSV) com os dados da pessoa.
+/* Vallen Fitness · relatório em PDF (para a consulta) e planilhas (CSV) com os dados da pessoa.
    O PDF é montado aqui mesmo, sem biblioteca: A4, fonte Helvetica (acentos pela WinAnsiEncoding), gráfico do peso e tabelas.
    O relatório vai para terceiros (médico, nutricionista): não leva a assinatura do sistema.
    Arquivos carregados em ordem pelo index.html (scripts comuns, escopo global compartilhado).
@@ -40,7 +40,7 @@ if(meta!=null){this.lin(x0,Y(meta),x1,Y(meta),"0.09 0.64 0.29",1,"4 3");this.t(x
 if(mm&&mm.length>2)this.cam(mm.map(p=>[X(p[0]),Y(p[1])]),"0.96 0.62 0.04",1.6,"5 3");this.cam(pts.map(p=>[X(p[0]),Y(p[1])]),VERDE,2);
 pts.forEach(p=>this.ret(X(p[0])-1.6,Y(p[1])-1.6,3.2,3.2,VERDE));this.t(x0,y0-12,fd(d0),8,false,CINZA);this.t(x1,y0-12,fd(pts[pts.length-1][0]),8,false,CINZA,true);
 this.y=y0-18;if(mm&&mm.length>2){this.ret(x0,this.y-3,10,3,VERDE);this.t(x0+14,this.y-5,"pesagens",8,false,CINZA);this.ret(x0+70,this.y-3,10,3,"0.96 0.62 0.04");this.t(x0+84,this.y-5,"média de 7 dias",8,false,CINZA);this.y-=14}},
-bytes(rodape){const n=this.pags.length,obj=[];obj[1]="<< /Type /Catalog /Pages 2 0 R >>";obj[3]="<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica /Encoding /WinAnsiEncoding >>";obj[4]="<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica-Bold /Encoding /WinAnsiEncoding >>";obj[5]=`<< /Title (${pdfStr(this.titulo)}) /Producer (Meu Corpo) /CreationDate (D:${td().replace(/-/g,"")}) >>`;const kids=[];
+bytes(rodape){const n=this.pags.length,obj=[];obj[1]="<< /Type /Catalog /Pages 2 0 R >>";obj[3]="<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica /Encoding /WinAnsiEncoding >>";obj[4]="<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica-Bold /Encoding /WinAnsiEncoding >>";obj[5]=`<< /Title (${pdfStr(this.titulo)}) /Producer (Vallen Fitness) /CreationDate (D:${td().replace(/-/g,"")}) >>`;const kids=[];
 this.pags.forEach((c,i)=>{const pg=6+i*2,ct=pg+1;kids.push(pg+" 0 R");const fim=[`BT /F1 7.5 Tf ${CINZA} rg ${PM} 24 Td (${pdfStr(rodape)}) Tj ET`,`BT /F1 7.5 Tf ${CINZA} rg ${(PW-PM-60).toFixed(2)} 24 Td (${pdfStr("Página "+(i+1)+" de "+n)}) Tj ET`],s=c.concat(fim).join("\n");obj[pg]=`<< /Type /Page /Parent 2 0 R /MediaBox [0 0 ${PW} ${PH}] /Resources << /Font << /F1 3 0 R /F2 4 0 R >> >> /Contents ${ct} 0 R >>`;obj[ct]=`<< /Length ${s.length} >>\nstream\n${s}\nendstream`});
 obj[2]=`<< /Type /Pages /Kids [${kids.join(" ")}] /Count ${n} >>`;let out="%PDF-1.4\n%\xE2\xE3\xCF\xD3\n";const off=[];for(let i=1;i<obj.length;i++){off[i]=out.length;out+=`${i} 0 obj\n${obj[i]}\nendobj\n`}const xr=out.length;out+=`xref\n0 ${obj.length}\n0000000000 65535 f \n`+off.slice(1).map(o=>String(o).padStart(10,"0")+" 00000 n \n").join("")+`trailer\n<< /Size ${obj.length} /Root 1 0 R /Info 5 0 R >>\nstartxref\n${xr}\n%%EOF`;const b=new Uint8Array(out.length);for(let i=0;i<out.length;i++)b[i]=out.charCodeAt(i)&255;return b}};
 
@@ -60,7 +60,7 @@ if(S.ex.r.length){D.h2("Exames"+(S.ex.d?` (${S.ex.d})`:""));D.tab(["Exame","Resu
 const eh=Object.entries(S.exh||{}).flatMap(([n,a])=>a.filter(h=>h[0]>=ini).map(h=>[n,fd(h[0]),String(h[1]).replace(".",",")]));if(eh.length){D.h2("Resultados adicionados depois");D.tab(["Exame","Data","Valor"],eh,[.5,.25,.25])}
 const nt=ks.filter(k=>S.log[k].nota).slice(-10);if(nt.length){D.h2("Observações");D.tab(["Data","Nota"],nt.map(k=>[fd(k),S.log[k].nota]),[.18,.82])}
 const pts=[...(S.med&&S.med.desc?[`Produto em uso: ${S.med.desc}. Orientação sobre continuidade e dose.`]:[]),...S.ex.r.filter(x=>x[3]).map(x=>`${x[0]}: ${x[1]} (referência ${x[2]}), fora da faixa.`),...alertasL().map(x=>String(x).replace(/<[^>]+>/g,"")),...S.pend.filter(x=>!S.done[x.id]).map(x=>x.t)];if(pts.length){D.h2("Pontos para conversar");pts.forEach(x=>D.p("• "+x,9.5))}
-return D.bytes("Dados registrados pela própria pessoa no app Meu Corpo. Não é laudo nem prescrição.")}
+return D.bytes("Dados registrados pela própria pessoa no app Vallen Fitness. Não é laudo nem prescrição.")}
 
 /* ---------- Planilhas (CSV com ponto e vírgula e vírgula decimal, que o Excel em português abre direto) ---------- */
 const csvV=v=>{if(v==null)return"";if(typeof v=="number")v=String(Math.round(v*100)/100).replace(".",",");v=String(v);return/[;"\n\r]/.test(v)?`"${v.replace(/"/g,'""')}"`:v};

@@ -1,4 +1,4 @@
-/* Meu Corpo · estado (S), migração, cálculos, metas, pendências, horários e perguntas à IA
+/* Vallen Fitness · estado (S), migração, cálculos, metas, pendências, horários e perguntas à IA
    Arquivos carregados em ordem pelo index.html (scripts comuns, escopo global compartilhado).
    Criado e desenvolvido por VALLEN TECNOLOGIA */
 const KEY="meucorpo1",T=[["hoje","🏠","Hoje"],["res","📈","Resumo"],["dieta","🍽","Dieta"],["treino","🏋","Treino"],["perfil","👤","Perfil"],["ia","💬","Perguntar"]];

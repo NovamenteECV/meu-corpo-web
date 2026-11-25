@@ -4,7 +4,7 @@
 <meta name="robots" content="noindex, nofollow">
 <meta name="referrer" content="no-referrer">
 <meta name="theme-color" content="#0f766e">
-<title>Acompanhamento · Meu Corpo</title>
+<title>Acompanhamento · Vallen Fitness</title>
 <style>
 :root{--tc:#0d9488;--tx:#0f172a;--mu:#64748b;--ln:#e5eaf0;--bg:#f3f5f8;--card:#fff;--wa:#dc2626;--ok:#16a34a}
 *{box-sizing:border-box}body{margin:0;font:15px/1.5 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;background:var(--bg);color:var(--tx)}
@@ -18,7 +18,7 @@ table{width:100%;border-collapse:collapse;font-size:13.5px}th,td{text-align:left
 <header><h1 id="tit">Acompanhamento</h1><p id="sub">Carregando…</p></header>
 <main id="v"></main>
 <script>
-/* Meu Corpo · página só de leitura de um link "Compartilhar com profissional".
+/* Vallen Fitness · página só de leitura de um link "Compartilhar com profissional".
    Pede ao banco (função meucorpo_ver_compartilhado) só as partes que a pessoa escolheu. Sem login, sem cookies. */
 (function () {
   const SB_URL = "https://swqjqsdpzwcgtwihwttw.supabase.co", SB_KEY = "sb_publishable_pfKC3mv8VL-trq8Fv8iTqQ_GnklcdDe";
@@ -53,7 +53,7 @@ table{width:100%;border-collapse:collapse;font-size:13.5px}th,td{text-align:left
       if (P.includes("bio")) { const B = (d.bios || []).slice().sort((a, b) => a.d < b.d ? 1 : -1); h.push(`<div class="c"><h2>Bioimpedância</h2>${B.length ? tab(["Data", "Peso", "Gordura kg", "Gordura %", "Músculo kg", "Visceral", "TMB"], B.map(x => [fd(x.d), f1(x.peso), f1(x.gk), f1(x.gp), f1(x.mus), x.vis ?? "–", x.tmb ? Math.round(x.tmb) : "–"])) : `<p class="m">Nenhuma registrada.</p>`}</div>`) }
       if (P.includes("exames")) { const R = (d.ex && d.ex.r) || [], H2 = Object.entries(d.exh || {}).flatMap(([n, a]) => (a || []).map(x => [n, fd(x[0]), String(x[1]).replace(".", ",")])); h.push(`<div class="c"><h2>Exames${d.ex && d.ex.d ? " · " + esc(d.ex.d) : ""}</h2>${R.length ? tab(["Exame", "Resultado", "Referência"], R.map(x => [x[0], { t: x[1], w: !!x[3] }, x[2] || "–"])) : `<p class="m">Nenhum registrado.</p>`}${H2.length ? `<h2 style="margin-top:14px">Resultados adicionados depois</h2>${tab(["Exame", "Data", "Valor"], H2)}` : ""}</div>`) }
       if (P.includes("treinos")) { const T = (d.ses || []).slice().sort((a, b) => a.d < b.d ? 1 : -1); h.push(`<div class="c"><h2>Treinos · ${T.length} registrado(s)</h2>${T.length ? tab(["Data", "Treino", "Duração", "Esforço (RPE)"], T.slice(0, 40).map(s => [fd(s.d), "Treino " + String(s.key || "").replace(/^S(?=[A-Z]$)/, ""), s.dur ? s.dur + " min" : "–", s.rpe ?? "–"])) : `<p class="m">Nenhum registrado.</p>`}</div>`) }
-      h.push(`<p class="m" style="text-align:center">Dados registrados pela própria pessoa no app Meu Corpo. Não é laudo nem prescrição.</p>`);
+      h.push(`<p class="m" style="text-align:center">Dados registrados pela própria pessoa no app Vallen Fitness. Não é laudo nem prescrição.</p>`);
       $("v").innerHTML = h.join("");
     }).catch(() => erro("Não consegui carregar agora. Confira a internet e tente de novo."));
 })();

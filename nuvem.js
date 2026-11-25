@@ -1,4 +1,4 @@
-/* Meu Corpo: login e sincronização com o Supabase.
+/* Vallen Fitness: login e sincronização com o Supabase.
    Carregado depois do app principal. Usa as variáveis globais S, KEY, sy, norm, draw, push, sinc. */
 (function () {
   const SB_URL = "https://swqjqsdpzwcgtwihwttw.supabase.co";
@@ -260,7 +260,7 @@
   };
 
   function telaLogin() {
-    const el = tela(`<h1>Meu Corpo</h1><p>Entre para ver seus dados em qualquer celular.</p>
+    const el = tela(`<h1>Vallen Fitness</h1><p>Entre para ver seus dados em qualquer celular.</p>
       <label>E-mail</label><input id="mce" type="email" autocomplete="email" inputmode="email">
       <label>Senha</label><input id="mcs" type="password" autocomplete="current-password">
       <button class="pri" id="mcin">Entrar</button>
@@ -448,7 +448,7 @@
      de forma importante, suba LGPD_V e todos aceitam de novo. */
   const LGPD_V = 1;
   const textoConsentimento = marcado => `<label class="aceite"><input type="checkbox" id="lgpd_ok"${marcado ? " checked" : ""}>
-      <span>Li a <a href="#" data-pol="1">política de privacidade</a> e autorizo o Meu Corpo a guardar e usar os meus dados de saúde (peso, medidas, alimentação, treinos, exames, medicação, fotos e dados do relógio) para as funções do app.</span></label>`;
+      <span>Li a <a href="#" data-pol="1">política de privacidade</a> e autorizo o Vallen Fitness a guardar e usar os meus dados de saúde (peso, medidas, alimentação, treinos, exames, medicação, fotos e dados do relógio) para as funções do app.</span></label>`;
   function verPolitica() {
     let el = document.getElementById("mcpol");
     if (!el) { el = document.createElement("div"); el.id = "mcpol"; document.body.appendChild(el) }
@@ -457,7 +457,7 @@
   }
   function pedirConsentimento() {
     if (!user || !ready || !S.p || !S.p.nome || (S.lgpd && S.lgpd.v >= LGPD_V) || document.getElementById("mcl")) return;
-    const el = tela(`<h1>Sua privacidade</h1><p>O Meu Corpo guarda dados de saúde, que a lei (LGPD) trata como sensíveis. Para continuar, precisamos da sua autorização.</p>
+    const el = tela(`<h1>Sua privacidade</h1><p>O Vallen Fitness guarda dados de saúde, que a lei (LGPD) trata como sensíveis. Para continuar, precisamos da sua autorização.</p>
       ${textoConsentimento(false)}
       <button class="pri" id="mcac">Aceitar e continuar</button>
       <button class="sec" id="mcna">Não aceito</button><div class="msg"></div>`);
@@ -664,7 +664,7 @@
   }
   async function confirmar() {
     const t = trava(); if (!t) return true;
-    if (t.tipo === "nativo") return !!(await BIO().verificar({ titulo: "Meu Corpo", subtitulo: "Confirme que é você para abrir" })).ok;
+    if (t.tipo === "nativo") return !!(await BIO().verificar({ titulo: "Vallen Fitness", subtitulo: "Confirme que é você para abrir" })).ok;
     return !!(await navigator.credentials.get({ publicKey: { challenge: desafio(), allowCredentials: [{ type: "public-key", id: unb64(t.id) }], userVerification: "required", timeout: 60000 } }));
   }
   async function ligarTrava() {
@@ -673,7 +673,7 @@
       if (!r.ok) return false;
       localStorage.setItem(TRV, JSON.stringify({ tipo: "nativo" })); return true;
     }
-    const c = await navigator.credentials.create({ publicKey: { challenge: desafio(), rp: { name: "Meu Corpo", id: location.hostname }, user: { id: crypto.getRandomValues(new Uint8Array(16)), name: (user && user.email) || "meucorpo", displayName: (S.p && S.p.nome) || "Meu Corpo" }, pubKeyCredParams: [{ type: "public-key", alg: -7 }, { type: "public-key", alg: -257 }], authenticatorSelection: { authenticatorAttachment: "platform", userVerification: "required", residentKey: "discouraged" }, attestation: "none", timeout: 60000 } });
+    const c = await navigator.credentials.create({ publicKey: { challenge: desafio(), rp: { name: "Vallen Fitness", id: location.hostname }, user: { id: crypto.getRandomValues(new Uint8Array(16)), name: (user && user.email) || "meucorpo", displayName: (S.p && S.p.nome) || "Vallen Fitness" }, pubKeyCredParams: [{ type: "public-key", alg: -7 }, { type: "public-key", alg: -257 }], authenticatorSelection: { authenticatorAttachment: "platform", userVerification: "required", residentKey: "discouraged" }, attestation: "none", timeout: 60000 } });
     if (!c) return false;
     localStorage.setItem(TRV, JSON.stringify({ tipo: "web", id: b64(c.rawId) })); return true;
   }
@@ -683,7 +683,7 @@
     travado = true;
     let el = document.getElementById("mctr");
     if (!el) { el = document.createElement("div"); el.id = "mctr"; el.className = "mcov"; document.body.appendChild(el) }
-    el.innerHTML = `<div class="bx" style="text-align:center"><div class="cad">🔒</div><h1>Meu Corpo</h1><p>Confirme que é você para abrir.</p><button class="pri" id="mcdes">${window.NATIVE ? "Usar digital ou rosto" : "Usar Face ID"}</button><button class="lnk" id="mcsen">Sair e entrar com a senha</button><div class="msg" id="mctrm"></div></div><p class="assin">Criado e desenvolvido por <b>VALLEN TECNOLOGIA</b></p>`;
+    el.innerHTML = `<div class="bx" style="text-align:center"><div class="cad">🔒</div><h1>Vallen Fitness</h1><p>Confirme que é você para abrir.</p><button class="pri" id="mcdes">${window.NATIVE ? "Usar digital ou rosto" : "Usar Face ID"}</button><button class="lnk" id="mcsen">Sair e entrar com a senha</button><div class="msg" id="mctrm"></div></div><p class="assin">Criado e desenvolvido por <b>VALLEN TECNOLOGIA</b></p>`;
     const aviso = t => { const m = el.querySelector("#mctrm"); if (m) m.textContent = t };
     const tenta = async () => {
       try { if (await confirmar()) { travado = false; el.remove() } else aviso("Não foi possível confirmar. Toque para tentar de novo.") }

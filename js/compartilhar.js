@@ -1,4 +1,4 @@
-/* Meu Corpo · compartilhar com um profissional: link só de leitura, com prazo (tabela meucorpo_compartilhamentos).
+/* Vallen Fitness · compartilhar com um profissional: link só de leitura, com prazo (tabela meucorpo_compartilhamentos).
    Quem abre o link vê o ver.html do site, que pede ao banco só as partes escolhidas (função meucorpo_ver_compartilhado).
    Arquivos carregados em ordem pelo index.html (scripts comuns, escopo global compartilhado).
    Criado e desenvolvido por VALLEN TECNOLOGIA */
@@ -17,7 +17,7 @@ async function compCarregar(){try{const r=await SB.from("meucorpo_compartilhamen
 function compToken(){const b=new Uint8Array(24);crypto.getRandomValues(b);return btoa(String.fromCharCode(...b)).replace(/\+/g,"-").replace(/\//g,"_").replace(/=+$/,"")}
 async function compCriar(){if(!COMP.partes.length){toast("Marque pelo menos uma parte.");return}const para=(document.getElementById("compPara").value||"").replace(/[<>]/g,"").trim().slice(0,80),ate=new Date(Date.now()+COMP.dias*864e5).toISOString(),token=compToken();
 try{const r=await SB.from("meucorpo_compartilhamentos").insert({token,para:para||null,partes:COMP.partes,ate});if(r.error)throw r.error;COMP.novo=token;COMP.lista=null;draw(1);compEnviar(token)}catch(e){toast("Não consegui criar o link. Confira a internet.")}}
-async function compEnviar(t){const u=compLink(t),txt="Acompanhamento do Meu Corpo (só leitura): "+u;try{if(navigator.share){await navigator.share({text:txt});return}}catch(e){if(e&&e.name=="AbortError")return}compCopiar(t)}
+async function compEnviar(t){const u=compLink(t),txt="Acompanhamento do Vallen Fitness (só leitura): "+u;try{if(navigator.share){await navigator.share({text:txt});return}}catch(e){if(e&&e.name=="AbortError")return}compCopiar(t)}
 async function compCopiar(t){try{await navigator.clipboard.writeText(compLink(t));toast("Link copiado")}catch(e){toast("Não consegui copiar.")}}
 async function compApagar(t){try{const r=await SB.from("meucorpo_compartilhamentos").delete().eq("token",t);if(r.error)throw r.error;if(COMP.novo==t)COMP.novo=null;COMP.lista=null;draw(1);toast("Link cancelado: não abre mais")}catch(e){toast("Não consegui cancelar. Confira a internet.")}}
 document.addEventListener("click",e=>{const t=e.target.closest("[data-mccompp],[data-mccompd],[data-mccompnovo],[data-mccompenv],[data-mccompcop],[data-mccompdel]");if(!t)return;const D=t.dataset;

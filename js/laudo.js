@@ -1,4 +1,4 @@
-/* Meu Corpo · ler o laudo pela foto (APK): bioimpedância e exames. O texto é lido no próprio celular
+/* Vallen Fitness · ler o laudo pela foto (APK): bioimpedância e exames. O texto é lido no próprio celular
    (plugin nativo Texto, leitor do Google Play Services); aqui as linhas viram linhas de tabela e os números
    vão para os campos. A pessoa sempre confere antes de salvar.
    Também: gordura corporal do Health Connect (balança inteligente) entra na bioimpedância (hkGordura).
