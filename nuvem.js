@@ -239,7 +239,7 @@
   function tela(html) {
     let el = document.getElementById("mcl");
     if (!el) { el = document.createElement("div"); el.id = "mcl"; el.className = "mcov"; document.body.appendChild(el) }
-    el.innerHTML = `<div class="bx"><img class="logo" src="icon-192.png" onerror="this.remove()">${html}</div><p class="assin">Criado e desenvolvido por <b>VALLEN TECNOLOGIA</b></p>`;
+    el.innerHTML = `<div class="bx"><img class="logo" src="icon-192.png" onerror="this.remove()">${html}</div><p class="assin">Criado e desenvolvido por <a href="https://vallentecnologia.com.br/" target="_blank" rel="noopener" style="color:inherit;text-decoration:none"><b>VALLEN TECNOLOGIA</b></a></p>`;
     return el;
   }
   function fechar() { const el = document.getElementById("mcl"); if (el) el.remove() }
@@ -683,7 +683,7 @@
     travado = true;
     let el = document.getElementById("mctr");
     if (!el) { el = document.createElement("div"); el.id = "mctr"; el.className = "mcov"; document.body.appendChild(el) }
-    el.innerHTML = `<div class="bx" style="text-align:center"><div class="cad">🔒</div><h1>Vallen Fitness</h1><p>Confirme que é você para abrir.</p><button class="pri" id="mcdes">${window.NATIVE ? "Usar digital ou rosto" : "Usar Face ID"}</button><button class="lnk" id="mcsen">Sair e entrar com a senha</button><div class="msg" id="mctrm"></div></div><p class="assin">Criado e desenvolvido por <b>VALLEN TECNOLOGIA</b></p>`;
+    el.innerHTML = `<div class="bx" style="text-align:center"><div class="cad">🔒</div><h1>Vallen Fitness</h1><p>Confirme que é você para abrir.</p><button class="pri" id="mcdes">${window.NATIVE ? "Usar digital ou rosto" : "Usar Face ID"}</button><button class="lnk" id="mcsen">Sair e entrar com a senha</button><div class="msg" id="mctrm"></div></div><p class="assin">Criado e desenvolvido por <a href="https://vallentecnologia.com.br/" target="_blank" rel="noopener" style="color:inherit;text-decoration:none"><b>VALLEN TECNOLOGIA</b></a></p>`;
     const aviso = t => { const m = el.querySelector("#mctrm"); if (m) m.textContent = t };
     const tenta = async () => {
       try { if (await confirmar()) { travado = false; el.remove() } else aviso("Não foi possível confirmar. Toque para tentar de novo.") }
@@ -716,7 +716,7 @@
     el.innerHTML = `<div class="bx"><img class="logo" src="icon-192.png" onerror="this.remove()"><h1>Senha nova</h1><p>Crie a senha nova da conta${user && user.email ? ` <b>${esc(user.email)}</b>` : ""}.</p>
       <label>Senha nova</label><input id="mcn1" type="password" autocomplete="new-password">
       <label>Repita a senha</label><input id="mcn2" type="password" autocomplete="new-password">
-      <button class="pri" id="mcnok">Salvar senha</button><div class="msg" id="mcnm"></div></div><p class="assin">Criado e desenvolvido por <b>VALLEN TECNOLOGIA</b></p>`;
+      <button class="pri" id="mcnok">Salvar senha</button><div class="msg" id="mcnm"></div></div><p class="assin">Criado e desenvolvido por <a href="https://vallentecnologia.com.br/" target="_blank" rel="noopener" style="color:inherit;text-decoration:none"><b>VALLEN TECNOLOGIA</b></a></p>`;
     const m = (t, ok) => { const x = el.querySelector("#mcnm"); x.textContent = t; x.className = "msg" + (ok ? " ok" : "") };
     el.querySelector("#mcnok").onclick = async () => {
       const a = el.querySelector("#mcn1").value, b = el.querySelector("#mcn2").value;
