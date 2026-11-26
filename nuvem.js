@@ -6,7 +6,7 @@
   const T = "meucorpo_state";
   if (!window.supabase || SB_URL.indexOf("__") === 0) return;
   const SITE = "https://fitness.vallentecnologia.com.br/";   // o link do e-mail de senha sempre abre o site (também quando o pedido saiu do APK)
-  const APK_URL = "https://github.com/NovamenteECV/meu-corpo-web/releases/latest/download/MeuCorpo.apk";
+  const APK_URL = "https://central.vallentecnologia.com.br/baixar/fitness";   // download com conta na Vallen Central (desde 26/11/2026)
   /* Link do e-mail "Esqueci a senha": lido antes do supabase-js limpar o endereço. */
   const H0 = new URLSearchParams(location.hash.slice(1));
   let recuperando = H0.get("type") === "recovery";
