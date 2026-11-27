@@ -34,10 +34,14 @@ function planoResumo() {
   return PLANO_NOMES[n] + (o == "teste" ? " (teste grátis)" : o == "cortesia" ? " (cortesia)" : "") + (PLANO.ate ? " · até " + fd(PLANO.ate) : "");
 }
 function planoLista(min) {
-  const ps = (PLANO && PLANO.planos || []).filter(p => p.nivel >= (min || 1));
-  if (!ps.length) return `<p class="m">Os planos estão na Vallen Central: <a href="https://central.vallentecnologia.com.br/minha-conta" target="_blank" rel="noopener">central.vallentecnologia.com.br</a></p>`;
-  return ps.map(p => `<div class="c"${p.destaque ? ' style="border:2px solid var(--ac,#0d9488)"' : ""}><div class="r sp"><b>${esc(p.nome)}</b><b>${esc(p.preco)}<small>${esc(p.sufixo)}</small></b></div><p class="m" style="margin:6px 0 10px">${esc(p.descricao || "")}</p>`
-    + `<a class="p wide" href="${esc(p.url)}" target="_blank" rel="noopener" style="display:block;text-align:center;text-decoration:none">${planoNivel() == p.nivel ? "Renovar" : "Assinar"}</a></div>`).join("");
+  const todos = (PLANO && PLANO.planos || []).filter(p => p.nivel >= (min || 1));
+  // um cartão por nível (o mensal); o anual, se houver, vira o segundo botão do mesmo cartão
+  const ps = todos.filter(p => p.periodo !== "anual");
+  if (!ps.length) return `<p class="m">Os planos estão na Vallen Central: <a href="https://central.vallentecnologia.com.br/produtos/fitness" target="_blank" rel="noopener">central.vallentecnologia.com.br</a></p>`;
+  return ps.map(p => { const a = todos.find(x => x.periodo === "anual" && x.nivel === p.nivel);
+    return `<div class="c"${p.destaque ? ' style="border:2px solid var(--ac,#0d9488)"' : ""}><div class="r sp"><b>${esc(p.nivel_nome || p.nome)}</b><b>${esc(p.preco)}<small>${esc(p.sufixo)}</small></b></div><p class="m" style="margin:6px 0 10px">${esc(p.descricao || "")}</p>`
+    + `<a class="p wide" href="${esc(p.url)}" target="_blank" rel="noopener" style="display:block;text-align:center;text-decoration:none">${planoNivel() == p.nivel ? "Renovar" : "Assinar"} (mensal)</a>`
+    + (a ? `<a class="wide ghost" href="${esc(a.url)}" target="_blank" rel="noopener" style="display:block;text-align:center;text-decoration:none;margin-top:8px">Anual: ${esc(a.preco)} · 2 meses grátis</a>` : "") + `</div>` }).join("");
 }
 const planoEmail = () => PLANO && PLANO.email ? `<p class="m">Na Vallen Central, use o mesmo e-mail do app: <b>${esc(PLANO.email)}</b>. Depois de pagar, volte aqui e toque em <b>Conferir agora</b>.</p>` : "";
 const planoBotoes = () => `<div class="r" style="gap:8px;flex-wrap:wrap;margin-top:6px"><button class="p" data-plano-conferir="1">Conferir agora</button><button class="ghost" data-plano-backup="1">Meus dados e conta</button></div>`;
