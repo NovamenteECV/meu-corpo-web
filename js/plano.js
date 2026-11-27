@@ -7,14 +7,15 @@
 const PLANO_URL = "https://central.vallentecnologia.com.br/api/fitness/plano";
 const PLANO_NOMES = ["Sem plano", "Básico", "Intermediário", "Completo"];
 /* nível mínimo de cada tela (o que não está aqui é do Básico): "aba", "mais.<sub>", "diario.<dsub>", "evo.<esub>" */
-const PLANO_REQ = { treino: 2, "diario.cardapio": 2, "diario.compras": 2, "diario.plano": 2, "evo.medidas": 2, "evo.corpo": 2, "evo.relogio": 2, "evo.fotos": 2, "evo.conq": 2,
-  "mais.plano": 2, "mais.saude": 2, "mais.lemb": 2, "mais.ci": 2, "mais.ciclo": 2, "mais.resumo": 2, "mais.exames": 3, "mais.med": 3, "mais.rel": 3, "mais.comp": 3, "mais.ia": 3 };
+const PLANO_REQ = { treino: 2, "diario.cardapio": 2, "diario.compras": 2, "diario.plano": 2, "evo.conq": 2, "mais.plano": 2, "mais.ciclo": 2, "mais.resumo": 2,
+  "evo.medidas": 3, "evo.corpo": 3, "evo.relogio": 3, "evo.fotos": 3, "mais.saude": 3, "mais.lemb": 3, "mais.ci": 3, "mais.exames": 3, "mais.med": 3, "mais.rel": 3, "mais.comp": 3, "mais.ia": 3 };
 const PLANO_LIVRE = { "mais.backup": 1, "mais.assinatura": 1 };   // abrem mesmo sem plano
 let PLANO = null, PLANO_UID = null, PLANO_BUSY = false, PLANO_ULT = 0;
 const planoHoje = () => { const d = new Date(); d.setMinutes(d.getMinutes() - d.getTimezoneOffset()); return d.toISOString().slice(0, 10) };
 function planoNivel() {
   if (!PLANO) return 3;   // a Central ainda não respondeu nenhuma vez: não bloqueia ninguém
   const n = +PLANO.nivel || 0;
+  if (n && PLANO.origem == "teste" && PLANO.termina_em && Date.now() > Date.parse(PLANO.termina_em)) return 0;   // teste grátis: acaba na hora certa, sem folga
   if (n && PLANO.ate) { const lim = new Date(PLANO.ate + "T12:00:00"); lim.setDate(lim.getDate() + 2); if (lim.toISOString().slice(0, 10) < planoHoje()) return 0 }   // venceu (2 dias de folga sem internet)
   return n;
 }
@@ -50,7 +51,7 @@ function planoV() {
   const n = planoNivel();
   return `<div class="c"><small>Seu plano</small><div style="font-size:22px;font-weight:800;margin:2px 0">${PLANO_NOMES[n]}</div><p class="m">${PLANO ? esc(planoResumo()) : "Ainda não consegui falar com a Vallen Central. Conecte à internet e toque em Conferir agora."}</p>${planoBotoes()}</div>`
     + planoEmail() + planoLista(1)
-    + `<p class="m">Básico: início, diário do dia e peso. Intermediário: mais treino, plano alimentar, cardápio, compras, medidas, composição, fotos, relógio, lembretes e check-in. Completo: tudo, com exames, medicação, relatórios, compartilhar com o profissional e IA.</p>`;
+    + `<p class="m">Básico: início, diário do dia e peso. Intermediário: mais treino, plano alimentar, cardápio, compras e conquistas. Completo: tudo, com medidas, composição, fotos, relógio, lembretes, check-in, exames, medicação, relatórios, compartilhar com o profissional e IA.</p>`;
 }
 /* chamado pelo draw(): devolve a tela de bloqueio ou "" */
 function planoBloqueio() {
