@@ -742,6 +742,8 @@
       sb.auth.getUser().then(r => { const e = r && r.error; if (e && (e.status === 401 || e.status === 403 || e.status === 404 || /not exist|not found/i.test(e.message || ""))) contaSumiu() }).catch(() => {});
       travar();
       setSy("sincronizando…"); cpull(true);
+      // mensalidade: plano guardado desta conta na hora e, logo depois, o da Vallen Central (js/plano.js)
+      try { planoCarregar(u.id); setTimeout(() => planoConferir(false), 800) } catch (e) {}
     } else if (!u) {
       ultimo = null; user = null; ready = false;
       telaLogin();
@@ -752,6 +754,8 @@
   /* Versão mínima, link do APK e aviso para todos (tabela meucorpo_config, editada pela Gestão). Lido sem login. */
   /* avisos agendados e para esta pessoa (meucorpo_avisos): o RLS só devolve os que já começaram e não acabaram */
   window.MC_AVISOS = async () => { if (!user) return []; const r = await sb.from("meucorpo_avisos").select("id,tipo,titulo,texto,ate,user_id").order("de", { ascending: false }).limit(5); return (r.data || []).sort((a, b) => (b.user_id ? 1 : 0) - (a.user_id ? 1 : 0)) };
+  /* token de login para a Vallen Central conferir o plano (js/plano.js); só o token, nunca a senha */
+  window.MC_SESSAO = async () => { const s = user && (await sb.auth.getSession()).data.session; return s ? { t: s.access_token, uid: user.id } : null };
   window.MC_CFG = () => fetch(SB_URL + "/rest/v1/meucorpo_config?id=eq.1&select=*", { headers: { apikey: SB_KEY }, cache: "no-store" })
     .then(r => r.ok ? r.json() : []).then(a => a[0] || null).catch(() => null);
   try { VCHK = 0; checaVersao() } catch (e) {}

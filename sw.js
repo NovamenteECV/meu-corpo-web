@@ -1,7 +1,7 @@
 // Ao publicar versão nova, mude o número em CACHE.
 // "mc-fotos" é o cache das fotos da conta (nuvem.js): não pode ser apagado ao trocar de versão.
-const CACHE = "meucorpo-web-v37";
-const BASE = ["./", "index.html", "css/app.css", "js/alimentos.js", "js/app.js", "js/atalhos.js", "js/comida.js", "js/compartilhar.js", "js/corpo.js", "js/dados.js", "js/erros.js", "js/habitos.js", "js/laudo.js", "js/lembretes-web.js", "js/relatorio.js", "js/resumo.js", "js/rotina.js", "js/saude.js", "js/telas.js", "js/treino.js", "nuvem.js", "supabase.js", "manifest.webmanifest", "icon-180.png", "icon-192.png", "icon-512.png"];
+const CACHE = "meucorpo-web-v38";
+const BASE = ["./", "index.html", "css/app.css", "js/alimentos.js", "js/app.js", "js/atalhos.js", "js/comida.js", "js/compartilhar.js", "js/corpo.js", "js/dados.js", "js/erros.js", "js/habitos.js", "js/laudo.js", "js/lembretes-web.js", "js/plano.js", "js/relatorio.js", "js/resumo.js", "js/rotina.js", "js/saude.js", "js/telas.js", "js/treino.js", "nuvem.js", "supabase.js", "manifest.webmanifest", "icon-180.png", "icon-192.png", "icon-512.png"];
 self.addEventListener("install", e => { e.waitUntil(caches.open(CACHE).then(c => c.addAll(BASE)).then(() => self.skipWaiting())); });
 self.addEventListener("activate", e => { e.waitUntil(caches.keys().then(ks => Promise.all(ks.filter(k => k !== CACHE && k !== "mc-fotos").map(k => caches.delete(k)))).then(() => self.clients.claim())); });
 self.addEventListener("fetch", e => {
